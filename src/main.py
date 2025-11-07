@@ -1,40 +1,40 @@
-"""
-Main Entry Point
-
-This is the main script to run the entire video generation pipeline.
-It sets up the Orchestrator with the paths to the configuration and
-user input files and then starts the process.
-"""
+import os
 import sys
-
+from dotenv import load_dotenv
 from orchestrator import Orchestrator
 
+# Load environment variables from the .env file
+load_dotenv()
+
 # Define the paths to your configuration and input files.
-# In a real application, you might get these from command-line arguments.
 CONFIG_FILE_PATH = "config.json"
-USER_INPUT_FILE_PATH = "user_input.json"
+INPUT_FILE_PATH = "input.json"
 
 if __name__ == "__main__":
     
-    # Optional: Allow passing the user input file as a command-line argument
-    # Example: python main.py my_other_video_input.json
+    # Get the API key securely from the environment
+    gemini_api_key = os.getenv("GEMINI_API_KEY")
+
+    if not gemini_api_key:
+        print("\nCRITICAL ERROR: 'GEMINI_API_KEY' not found in the environment.")
+        print("Please create a .env file and add the line: GEMINI_API_KEY='your_key_here'")
+        sys.exit(1) # Exit the script with an error code
+
+    # Allow passing a different input file via command line
     if len(sys.argv) > 1:
-        USER_INPUT_FILE_PATH = sys.argv[1]
-        print(f"Using user input file from command line: {USER_INPUT_FILE_PATH}")
+        INPUT_FILE_PATH = sys.argv[1]
+        print(f"Using input file from command line: {INPUT_FILE_PATH}")
 
     try:
-        # 1. Create an instance of the Orchestrator
         pipeline = Orchestrator(
             config_path=CONFIG_FILE_PATH,
-            user_input_path=USER_INPUT_FILE_PATH
+            input_path=INPUT_FILE_PATH,
+            api_key=gemini_api_key  # Pass the key securely
         )
-
-        # 2. Run the entire pipeline
         pipeline.run_pipeline()
 
     except FileNotFoundError as e:
-        print(f"\nCRITICAL ERROR: A required file was not found.")
-        print(f"Details: {e}")
-        print("Please ensure both 'config.json' and your user input file exist.")
+        print(f"\nCRITICAL ERROR: A required file was not found: {e}")
+        print(f"Please ensure '{CONFIG_FILE_PATH}' and '{INPUT_FILE_PATH}' both exist.")
     except Exception as e:
         print(f"\nAn unexpected critical error occurred: {e}")

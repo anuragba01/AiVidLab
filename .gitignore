@@ -1,3 +1,8 @@
 ytw/
 .env
 .README.md
+src/__pycache__
+src/processors/__pycache__
+output/
+notebook/
+

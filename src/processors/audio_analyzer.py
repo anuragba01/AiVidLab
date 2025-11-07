@@ -16,6 +16,7 @@ import io
 import tempfile
 import traceback
 from typing import List, Dict, Any
+from pydub import AudioSegment
 
 # Pydub is excellent for audio manipulation and silence detection.
 try:
@@ -73,7 +74,13 @@ class AudioAnalyzer:
         # Whisper works best with files, so we use a temporary file.
         # `tempfile.NamedTemporaryFile` handles cleanup automatically.
         try:
+            # Create a file-like object in memory from the raw bytes
+            audio_stream = io.BytesIO(audio_bytes)
+            # Pydub will auto-detect the format (e.g., MP3) and decode it
+            audio_segment = AudioSegment.from_file(audio_stream)
+            
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmpfile:
+                audio_segment.export(tmpfile.name, format="wav")
                 tmpfile.write(audio_bytes)
                 tmpfile.flush() # Ensure all data is written to disk
                 
