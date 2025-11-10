@@ -11,56 +11,35 @@ Responsibilities:
   an image generation model.
 """
 import os
-import time
 import traceback
-
-try:
-    import google.generativeai as genai
-except ImportError:
-    raise ImportError("The 'google-generativeai' library is required. Please install it with 'pip install google-generativeai'")
+from google import genai
+from google.genai import types
 
 class PromptProcessor:
     """
     Generates an image prompt by interpreting a text chunk within a creative context.
     """
-    def __init__(self, api_key: str, model_name: str):
+    def __init__(self, model_name: str):
         """
         Initializes the PromptProcessor with a specific Gemini LLM.
+        The API key is automatically sourced from the GEMINI_API_KEY environment variable.
 
         Args:
-            api_key (str): The Google AI Studio API key.
             model_name (str): The specific Gemini LLM to use for prompt generation.
         """
-        if not api_key:
-            raise ValueError("API key must be provided for PromptProcessor.")
         if not model_name:
             raise ValueError("A model name must be provided for PromptProcessor.")
 
         print(f"Initializing PromptProcessor with model: {model_name}...")
-        genai.configure(api_key=api_key)
-
-        # Configure safety settings to be fairly permissive for creative text generation.
-        safety_settings = [
-            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
-        ]
-        
-        self.model = genai.GenerativeModel(model_name, safety_settings=safety_settings)
+        self.model_name = model_name
+        # The genai.Client() will be instantiated in the process method.
         print("PromptProcessor initialized successfully.")
-
+        
+        
+    # --- Replace the existing process method with this corrected version ---
     def process(self, text_chunk: str, creative_brief: str, global_summary: str) -> str:
         """
         Generates a single, concise image prompt.
-
-        Args:
-            text_chunk (str): The specific text for the current scene or image.
-            creative_brief (str): The high-level artistic direction (style, mood, constraints).
-            global_summary (str): A summary of the entire script for thematic consistency.
-
-        Returns:
-            str: A generated image prompt. Returns a fallback prompt on failure.
         """
         if not text_chunk or not text_chunk.strip():
             print("Warning (PromptProcessor): Input text_chunk is empty. Returning fallback prompt.")
@@ -68,8 +47,6 @@ class PromptProcessor:
 
         print(f"Generating image prompt for text: '{text_chunk[:70]}...'")
 
-        # This is our "meta-prompt" or instruction template for the LLM.
-        # It's engineered to guide the AI to produce the desired output format.
         instructional_prompt = f"""
         **ROLE:** You are an expert visual concept artist. Your task is to generate a single, concise, and visually descriptive prompt for a text-to-image AI.
 
@@ -88,19 +65,28 @@ class PromptProcessor:
         """
 
         try:
-            # Configure the generation parameters for creative output.
-            generation_config = genai.types.GenerationConfig(
-                max_output_tokens=150,
-                temperature=0.8, # Higher temperature for more creative/varied prompts
+            client = genai.Client()
+            
+            # This is the corrected configuration using the 'generation_config' parameter
+            generation_config = types.GenerateContentConfig(
+                temperature=0.8,
+                safety_settings=[
+                    {"category": c, "threshold": types.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE}
+                    for c in types.HarmCategory if c != types.HarmCategory.HARM_CATEGORY_UNSPECIFIED
+                ]
             )
 
-            response = self.model.generate_content(
-                instructional_prompt,
-                generation_config=generation_config
+            response = client.models.generate_content(
+                model=self.model_name,
+                contents=instructional_prompt,
+                generation_config=generation_config # Correct parameter name
             )
 
-            if response.text and response.text.strip():
-                generated_prompt = response.text.strip()
+            if (response.candidates and response.candidates[0].content and
+                response.candidates[0].content.parts and
+                response.candidates[0].content.parts[0].text):
+                
+                generated_prompt = response.candidates[0].content.parts[0].text.strip()
                 print(f"  - Generated Prompt: \"{generated_prompt}\"")
                 return generated_prompt
             else:
@@ -109,45 +95,46 @@ class PromptProcessor:
 
         except Exception as e:
             print(f"ERROR (PromptProcessor): An exception occurred during the API call: {e}")
-            traceback.print_exc()
             # Provide a safe but useful fallback prompt.
             return f"A detailed and emotionally resonant visual for the text: {text_chunk}"
 
+    
 # --- Independent Test Block ---
 if __name__ == '__main__':
     print("\n--- Running Independent Test for PromptProcessor ---")
 
-    test_api_key = os.getenv("GEMINI_API_KEY", "PASTE_YOUR_API_KEY_HERE_FOR_TESTING")
-
-    if "PASTE_YOUR" in test_api_key:
-        print("\nWARNING: Please set the GEMINI_API_KEY environment variable for testing.")
+    # The genai.Client() automatically looks for the GEMINI_API_KEY environment variable.
+    if not os.getenv("GEMINI_API_KEY"):
+        print("\nFATAL ERROR: Please set the GEMINI_API_KEY environment variable for testing.")
         print("Skipping live API test.")
     else:
-        # These would come from config.json
-        TEST_MODEL_NAME = "gemini-1.5-flash-latest"
+        # These settings would normally come from your configuration files.
+        TEST_MODEL_NAME = "gemini-2.0-flash-lite" # A great model for this kind of synthesis task.
 
-        # These would come from user_input.json
-        TEST_CHUNK = "It is in the act of beginning that the true power lies, not in the contemplation of the destination."
-        TEST_BRIEF = "Style: Ancient philosophy scroll, ink wash painting (sumi-e), minimalist. Avoid: Modern objects, people's faces, bright colors."
-        TEST_SUMMARY = "The video is about the importance of taking the first step on a long journey."
+        # Sample inputs for the test
+        TEST_GLOBAL_SUMMARY = "A short video about the philosophy of Stoicism, focusing on emotional resilience and inner peace."
+        TEST_CREATIVE_BRIEF = "Cinematic, dramatic lighting, photorealistic, muted color palette, thoughtful and serene mood. Use a shallow depth of field."
+        TEST_TEXT_CHUNK = "The true measure of a man is not how he behaves in moments of comfort, but how he stands at times of challenge and controversy."
 
         try:
-            # 1. Instantiate the tool
-            prompt_tool = PromptProcessor(api_key=test_api_key, model_name=TEST_MODEL_NAME)
-
-            # 2. Use the tool to process the data
+            # 1. Instantiate the processor tool (no API key needed here)
+            prompt_tool = PromptProcessor(model_name=TEST_MODEL_NAME)
+            
+            # 2. Use the tool to generate a prompt
             final_prompt = prompt_tool.process(
-                text_chunk=TEST_CHUNK,
-                creative_brief=TEST_BRIEF,
-                global_summary=TEST_SUMMARY
+                text_chunk=TEST_TEXT_CHUNK,
+                creative_brief=TEST_CREATIVE_BRIEF,
+                global_summary=TEST_GLOBAL_SUMMARY
             )
 
-            # 3. Verify the output
-            if final_prompt:
-                print("\nSUCCESS: Prompt generation completed.")
-                print(f"  - Final Generated Prompt: \"{final_prompt}\"")
+            # 3. Verify and print the output
+            if final_prompt and "background" not in final_prompt and "concept" not in final_prompt:
+                print("\n--- SUCCESS: Prompt Generation Complete ---")
+                print("\n--- Generated Prompt ---")
+                print(final_prompt)
+                print("------------------------")
             else:
-                print("\nFAILURE: The processor returned an empty or invalid prompt.")
+                print("\nFAILURE: The processor returned a fallback prompt or was empty.")
 
         except (ValueError, RuntimeError, ImportError) as e:
             print(f"\nFAILURE: The test failed with an error: {e}")

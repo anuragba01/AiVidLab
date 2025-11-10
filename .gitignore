@@ -5,4 +5,5 @@ src/__pycache__
 src/processors/__pycache__
 output/
 notebook/
-
+rough/
+.out.wav

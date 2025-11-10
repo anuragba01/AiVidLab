@@ -76,25 +76,26 @@ class AudioAnalyzer:
         try:
             # Create a file-like object in memory from the raw bytes
             audio_stream = io.BytesIO(audio_bytes)
+            print (f"{type(audio_stream)}{type(audio_bytes)}")
+            print("a done")
             # Pydub will auto-detect the format (e.g., MP3) and decode it
             audio_segment = AudioSegment.from_file(audio_stream)
-            
+            print("b donr")
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=True) as tmpfile:
                 audio_segment.export(tmpfile.name, format="wav")
-                tmpfile.write(audio_bytes)
                 tmpfile.flush() # Ensure all data is written to disk
-                
+                print("c done")
                 # --- 1. Perform the full transcription to get word timestamps ---
                 audio_for_ts = whisper.load_audio(tmpfile.name)
                 result = whisper.transcribe(self.model, audio_for_ts, language="en")
-                
+                print("d done")
                 word_timestamps = self._extract_word_timestamps(result)
 
                 # --- 2. Use Pydub for silence-based chunking ---
                 # Pydub needs to load the audio from the file as well.
                 audio_segment = AudioSegment.from_file(tmpfile.name, format="wav")
                 silence_chunks = self._chunk_on_silence(audio_segment, chunk_config)
-                
+                print( "e done")
                 # --- 3. Align transcription text with silence chunks ---
                 pacing_chunks = self._align_text_to_chunks(silence_chunks, word_timestamps)
 
@@ -169,7 +170,7 @@ if __name__ == '__main__':
     
     # This test requires a sample audio file to exist.
     # We will use the output of the tts_processor test.
-    test_audio_file = "test_tts_output.wav"
+    test_audio_file = "out.wav"
     
     if not os.path.exists(test_audio_file):
         print(f"\nWARNING: Test audio file '{test_audio_file}' not found.")

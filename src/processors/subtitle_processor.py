@@ -81,7 +81,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 """
         return header
 
-    def _align_headings(self, heading_strings: List[str], word_timestamps: List[Dict]) -> (List[Dict], set):
+    def _align_headings(self, heading_strings: List[str], word_timestamps: List[Dict]):
         """Replicates the fuzzy matching logic from the notebook to find headings."""
         if not heading_strings or not word_timestamps:
             return [], set()
