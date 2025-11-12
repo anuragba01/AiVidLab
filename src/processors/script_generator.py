@@ -1,117 +1,154 @@
-"""
-Script Generator Processor Module
+# Save this as src/processors/script_generator.py
 
-This file contains the ScriptGenerator class, a tool responsible for creating
-a complete video script from a set of topics and keywords.
-
-Responsibilities:
-- Take high-level concepts (topics, keywords) and constraints (tone, length).
-- Use a Gemini Language Model (LLM) to expand these concepts into a coherent,
-  well-structured video script.
-- Format the script with clear headings (using the ':Heading Text::' syntax)
-  that can be used by the SubtitleProcessor and for YouTube chapters.
-- Return the final script as a formatted string.
-"""
 import os
+import sys
+import time
+import logging
 import traceback
 from typing import List
+from dotenv import load_dotenv
 
 try:
     from google import genai
 except ImportError:
-    raise ImportError("The 'google-generativeai' library is required. Please install it with 'pip install google-generativeai'")
+    # This provides a clearer error message if the library isn't installed.
+    raise ImportError(
+        "The 'google-generativeai' library is required. "
+        "Please install it with 'pip install google-generativeai'"
+    )
+
+# Set up a logger for this module. This is better than print() for production.
+logger = logging.getLogger(__name__)
 
 class ScriptGenerator:
     """
     Generates a video script using a Gemini LLM based on user-provided topics.
     """
-    def __init__(self, api_key: str, model_name: str):
+    def __init__(self, model_name: str, max_retries: int = 3):
         """
-        Initializes the ScriptGenerator with a specific Gemini LLM.
+        Initializes the ScriptGenerator.
 
         Args:
-            api_key (str): The Google AI Studio API key.
-            model_name (str): The specific Gemini LLM to use for script generation.
+            model_name (str): The specific Gemini LLM to use (e.g., "gemini-pro").
+            max_retries (int): The maximum number of times to retry the API call on failure.
         """
-        if not api_key:
-            raise ValueError("API key must be provided for ScriptGenerator.")
         if not model_name:
             raise ValueError("A model name must be provided for ScriptGenerator.")
-
-        print(f"Initializing ScriptGenerator with model: {model_name}...")
-        genai.configure()
-
-        # Configure safety settings appropriate for creative writing.
-
+            
+        self.model_name = model_name
+        self.max_retries = max_retries
         
-        self.model = genai.GenerativeModel(model_name)
-        print("ScriptGenerator initialized successfully.")
-
+        # genai.Client() automatically finds and uses the GEMINI_API_KEY from the environment.
+        try:
+            self.client = genai.Client()
+            logger.info(f"ScriptGenerator initialized successfully with model: {self.model_name}")
+        except Exception as e:
+            logger.error(f"Failed to initialize Gemini client: {e}")
+            raise RuntimeError("Could not initialize the Gemini client. Check API key and credentials.") from e
+        
     def process(
         self,
         topics: List[str],
         keywords: List[str],
         tone: str = "informative and engaging",
         target_word_count: int = 300
-    ) -> str:
+    ) -> str | None:
         """
         Generates a complete video script.
 
-        Args:
-            topics (List[str]): A list of the main topics the script should cover.
-            keywords (List[str]): A list of specific keywords to include.
-            tone (str): The desired tone of the script (e.g., "inspirational",
-                        "humorous", "formal").
-            target_word_count (int): The approximate desired length of the script.
-
         Returns:
-            str: The generated script as a single formatted string. Returns None on failure.
+            str: The generated script as a single formatted string, or None on failure.
         """
+        # --- 1. Input Validation ---
         if not topics:
-            raise ValueError("At least one topic must be provided to generate a script.")
+            logger.error("At least one topic must be provided to generate a script.")
+            return None
 
-        print(f"Generating a ~{target_word_count}-word script with a '{tone}' tone...")
-        
-        # This is our prompt engineering for the scriptwriter AI.
-        # It is highly structured to get a consistent and high-quality output.
+        logger.info(f"Generating a ~{target_word_count}-word script with a '{tone}' tone...")
+       
         instructional_prompt = f"""
-        **ROLE:** You are an expert video scriptwriter. Your task is to write a complete, engaging, and well-structured video script based on the provided details.
+        **ROLE:** You are an expert video scriptwriter for engaging online content.
+        **TASK:** Write a complete, well-structured video script based on the provided details.
 
         **CONTEXT & INSTRUCTIONS:**
         1.  **Primary Topics to Cover:** {", ".join(topics)}
-        2.  **Keywords to Include:** {", ".join(keywords)}
+        2.  **Keywords to Include naturally:** {", ".join(keywords)}
         3.  **Desired Tone:** {tone}
         4.  **Target Length:** Approximately {target_word_count} words.
-        5.  **Structure:** The script must be logically structured with an introduction, a body that covers the topics, and a conclusion.
-        6.  **HEADING FORMAT:** You MUST format all headings by enclosing them in a single colon on the left and a double colon on the right. For example: `:This is a Heading::`. This is critical for the video pipeline. Do not use any other heading format like markdown.
-        7.  **Content:** Write in clear, concise language suitable for being spoken as a voice-over. Break up long paragraphs into shorter, more digestible sentences.
-        8.  **Output Format:** Provide ONLY the script itself. Do not include a title, introduction, or any explanatory text outside of the script content.
+        5.  **Structure:** The script must have a clear introduction, body, and conclusion.
+        6.  **HEADING FORMAT (CRITICAL):** All headings MUST be formatted like this: `:This is a Heading::`. Do not use markdown or any other format for headings.
+        7.  **Content:** Use clear, concise language suitable for a voice-over. Break up long paragraphs.
+        8.  **Output Format:** Provide ONLY the raw script content. Do not add a title, introduction, apologies, or any other conversational text outside of the script itself.
 
         **Generated Video Script:**
         """
 
-        try:
-            # Configure the generation for a creative, long-form text task.
-            generation_config = genai.types.GenerationConfig(
-                max_output_tokens=2048, # Allow for longer scripts
-                temperature=0.75,     # A good balance of creativity and coherence
-            )
+        # --- 2. API Call with Retry Logic ---
+        for attempt in range(self.max_retries):
+            try:
+                response = self.client.models.generate_content(
+                    model=self.model_name,
+                    contents=instructional_prompt
+                )
+                
+                # --- 3. Response Validation ---
+                if response.text and response.text.strip():
+                    logger.info("Successfully generated video script.")
+                    return response.text.strip()
+                else:
+                    # This handles cases where the API returns a success code but an empty response
+                    logger.warning("LLM returned an empty or invalid response. Aborting.")
+                    # We break here because retrying an empty response is unlikely to help.
+                    break
 
-            response = self.model.generate_content(
-                instructional_prompt,
-                generation_config=generation_config
-            )
+            except Exception as e:
+                logger.error(f"API call failed on attempt {attempt + 1}/{self.max_retries}: {e}")
+                traceback.print_exc(file=sys.stderr)
+                if attempt < self.max_retries - 1:
+                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s, ...
+                    logger.info(f"Retrying in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    logger.error("All retry attempts failed. Aborting script generation.")
+                    return None
+        
+        return None # Return None if all attempts fail or response is empty
 
-            if response.text and response.text.strip():
-                generated_script = response.text.strip()
-                print("Successfully generated video script.")
-                return generated_script
-            else:
-                print("Warning (ScriptGenerator): LLM returned an empty response.")
-                return None
 
-        except Exception as e:
-            print(f"ERROR (ScriptGenerator): An exception occurred during the API call: {e}")
-            traceback.print_exc()
-            return None
+# --- Independent Test Block ---
+# This code only runs when you execute this file directly (e.g., `python src/processors/script_generator.py`)
+if __name__ == '__main__':
+    # --- Setup for Testing ---
+    # Configure basic logging to see the output from the class
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+    # Find the project's root directory to locate the .env file
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    load_dotenv(dotenv_path=os.path.join(project_root, '.env'))
+
+    if not os.getenv("GEMINI_API_KEY"):
+        logger.error("FATAL: GEMINI_API_KEY not found. Ensure it's in a .env file in the project root.")
+        sys.exit(1)
+
+    # --- Test Execution ---
+    logger.info("--- Running Independent Test for ScriptGenerator ---")
+    
+    # Instantiate the tool with the model you want to test
+    tool = ScriptGenerator(model_name="gemini-pro")
+
+    # Call the processor with test data
+    script = tool.process(
+        topics=["The philosophy of Stoicism", "Practical applications in modern life"],
+        keywords=["Marcus Aurelius", "resilience", "virtue"],
+        tone="calm, inspirational",
+        target_word_count=250
+    )
+
+    # --- Verification ---
+    if script:
+        logger.info("---  Test SUCCESS ---")
+        print("\n--- Generated Script ---")
+        print(script)
+        print("------------------------")
+    else:
+        logger.error("--- Test FAILED: The process returned None. ---")
