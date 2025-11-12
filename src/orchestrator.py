@@ -37,7 +37,7 @@ class Orchestrator:
     Manages the entire video creation workflow from start to finish.
     """
 
-    def __init__(self, config_path: str, input_path: str, api_key: str):
+    def __init__(self, config_path: str, input_path: str):
         """
         Initializes the Orchestrator.
 
@@ -46,10 +46,7 @@ class Orchestrator:
             input_path (str): Path to the consolidated input.json file.
             api_key (str): The Gemini API key (validated and passed to specific processors).
         """
-        print("--- Initializing Orchestrator ---")
-        if not api_key:
-            raise ValueError("API key was not provided. Please ensure it is set in your environment.")
-        self.api_key = api_key # Store the api_key for use here
+
 
         self.config = self._load_json(config_path)
         self.input_data = self._load_json(input_path)
@@ -71,8 +68,8 @@ class Orchestrator:
         
         # CORRECTED LINE: Pass both the api_key and model_name to the ImageGenerator.
         self.image_generator = ImageGenerator(
-            api_key=self.api_key,
-            model_name=self.config['gemini_models']['image_generator']
+            model_name=self.config['gemini_models']['image_generator'],
+            api_key=os.getenv("GEMINI_API_KEY")
         )
         
         self.subtitle_processor = SubtitleProcessor()

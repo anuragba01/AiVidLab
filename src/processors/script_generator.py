@@ -24,7 +24,7 @@ class ScriptGenerator:
     """
     Generates a video script using a Gemini LLM based on user-provided topics.
     """
-    def __init__(self, model_name: str, max_retries: int = 3):
+    def __init__(self, model_name: str):
         """
         Initializes the ScriptGenerator.
 
@@ -36,7 +36,6 @@ class ScriptGenerator:
             raise ValueError("A model name must be provided for ScriptGenerator.")
             
         self.model_name = model_name
-        self.max_retries = max_retries
         
         # genai.Client() automatically finds and uses the GEMINI_API_KEY from the environment.
         try:
@@ -84,34 +83,27 @@ class ScriptGenerator:
         """
 
         # --- 2. API Call with Retry Logic ---
-        for attempt in range(self.max_retries):
-            try:
-                response = self.client.models.generate_content(
-                    model=self.model_name,
-                    contents=instructional_prompt
-                )
-                
-                # --- 3. Response Validation ---
-                if response.text and response.text.strip():
-                    logger.info("Successfully generated video script.")
-                    return response.text.strip()
-                else:
-                    # This handles cases where the API returns a success code but an empty response
-                    logger.warning("LLM returned an empty or invalid response. Aborting.")
-                    # We break here because retrying an empty response is unlikely to help.
-                    break
-
-            except Exception as e:
-                logger.error(f"API call failed on attempt {attempt + 1}/{self.max_retries}: {e}")
-                traceback.print_exc(file=sys.stderr)
-                if attempt < self.max_retries - 1:
-                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s, ...
-                    logger.info(f"Retrying in {wait_time} seconds...")
-                    time.sleep(wait_time)
-                else:
-                    logger.error("All retry attempts failed. Aborting script generation.")
-                    return None
         
+        try:
+            response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=instructional_prompt
+            )
+            
+            # --- 3. Response Validation ---
+            if response.text and response.text.strip():
+                logger.info("Successfully generated video script.")
+                return response.text.strip()
+            else:
+                # This handles cases where the API returns a success code but an empty response
+                logger.warning("LLM returned an empty or invalid response. Aborting.")
+                # We break here because retrying an empty response is unlikely to help.
+                
+
+        except Exception as e:
+            logger.error(f"API call failed on attempt {e}")
+            traceback.print_exc(file=sys.stderr)
+
         return None # Return None if all attempts fail or response is empty
 
 
@@ -126,22 +118,18 @@ if __name__ == '__main__':
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     load_dotenv(dotenv_path=os.path.join(project_root, '.env'))
 
-    if not os.getenv("GEMINI_API_KEY"):
-        logger.error("FATAL: GEMINI_API_KEY not found. Ensure it's in a .env file in the project root.")
-        sys.exit(1)
-
     # --- Test Execution ---
     logger.info("--- Running Independent Test for ScriptGenerator ---")
     
     # Instantiate the tool with the model you want to test
-    tool = ScriptGenerator(model_name="gemini-pro")
+    tool = ScriptGenerator("gemini-2.0-flash-lite")
 
     # Call the processor with test data
     script = tool.process(
         topics=["The philosophy of Stoicism", "Practical applications in modern life"],
         keywords=["Marcus Aurelius", "resilience", "virtue"],
         tone="calm, inspirational",
-        target_word_count=250
+        target_word_count=50
     )
 
     # --- Verification ---

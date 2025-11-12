@@ -29,7 +29,6 @@ if __name__ == "__main__":
         pipeline = Orchestrator(
             config_path=CONFIG_FILE_PATH,
             input_path=INPUT_FILE_PATH,
-            api_key=gemini_api_key  # Pass the key securely
         )
         pipeline.run_pipeline()
 
