@@ -1,0 +1,27 @@
+{
+  "script_generation": {
+    "topics": [
+      "The concept of 'flow state' in psychology",
+      "How to achieve flow for increased productivity and happiness",
+      "Examples of flow in daily life"
+    ],
+    "keywords": [
+      "Mihaly Csikszentmihalyi",
+      "deep work",
+      "concentration",
+      "optimal experience",
+      "skill-challenge balance"
+    ],
+    "tone": "empowering, clear, and scientific",
+    "target_word_count": 300
+  },
+  "video_details": {
+    "output_filename": "flow_state_explained.mp4",
+    "intro_text": "Finding Your Flow",
+    "outro_text": "Enter the state of optimal experience.",
+    "background_music_path": "/media/anurag/New Volume/other/youtube temp/fortraining"
+  },
+  "style_brief": {
+    "creative_brief": "Style: Abstract visualization of neural pathways, flowing water, and clean, minimalist graphics. Mood: Focused, energetic, and positive. Visuals: Brain synapses firing, a river flowing smoothly around rocks, a person completely absorbed in a task (without showing their face). Avoid: Distracting backgrounds, stock photos of office workers."
+  }
+}

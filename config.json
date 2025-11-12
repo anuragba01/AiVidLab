@@ -1,0 +1,58 @@
+{
+  "directories": {
+    "output": "output",
+    "images": "output/images",
+    "audio": "output/audio",
+    "temp": "output/temp"
+  },
+  "gemini_models": {
+    "tts": "gemini-2.5-flash-preview-tts",
+    "llm": "gemini-2.0-flash-lite",
+    "image_generator": "gemini-2.0-flash-preview-image-generation"
+  },
+  "tts_settings": {
+    "voice_name": "Charon",
+    "audio_rate_hz": 24000
+  },
+  "audio_analysis": {
+    "min_chunk_duration_s": 15.0,
+    "max_chunk_duration_s": 30.0,
+    "silence_threshold_db_offset": -26,
+    "min_silence_len_ms": 300,
+    "stt_whisper_model_size": "small"
+  },
+  "image_generation": {
+    "prompt_universal_suffix": ", soft lighting, cinematic style, high detail, emotionally immersive",
+    "negative_prompt_terms": "low quality, poorly drawn, extra limbs, distorted, neon, watermark, signature, text",
+    "target_width": 1024,
+    "target_height": 576
+  },
+  "video_rendering": {
+    "target_width": 1920,
+    "target_height": 1080,
+    "fps": 24,
+    "transition_duration_s": 1.5,
+    "video_codec": "libx264",
+    "pixel_format": "yuv420p",
+    "audio_codec": "aac",
+    "enable_calm_zoom": true,
+    "calm_zoom_max_scale": 1.05,
+    "calm_zoom_cycles_per_clip": 0.5
+  },
+  "subtitle_style": {
+    "font_name": "Times New Roman",
+    "font_size": 72,
+    "primary_colour": "&H00FFFFFF",
+    "outline_colour": "&H00000000",
+    "back_colour": "&H99000000",
+    "alignment": 2,
+    "max_words_per_line": 7,
+    "max_line_duration_s": 12.0
+  },
+  "intro_outro_settings": {
+    "enabled": true,
+    "intro_duration_s": 3.0,
+    "outro_duration_s": 2.0,
+    "background_music_volume": 0.04
+  }
+}

@@ -1,20 +1,151 @@
+# ==========================================================
+# UNIVERSAL LINUX-ONLY .gitignore (Python / AI / Automation)
+# ==========================================================
 
+# ----------------------------
+# Python cache and compiled files
+# ----------------------------
 __pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+*.pdb
+*.so
 
-
+# ----------------------------
+# Virtual environments (local or venv-based)
+# ----------------------------
+.venv/
+venv/
+env/
+ENV/
+ytw/
 myenv/
-.env
+*.env
+*.env.*
 
+# ----------------------------
+# Build and packaging
+# ----------------------------
+build/
+dist/
+downloads/
+.eggs/
+*.egg-info/
+pip-wheel-metadata/
+develop-eggs/
+.installed.cfg
+MANIFEST
 
+# ----------------------------
+# Logs, temp files, and debug output
+# ----------------------------
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*.cache/
+*.pytest_cache/
+*.coverage
+.coverage
+coverage.xml
+nosetests.xml
+*.prof
+*.out
+profile_default/
 
+# ----------------------------
+# Output and generated media
+# ----------------------------
 output/
 rough/
+temp/
+tmp/
+*.wav
+*.mp3
+*.mp4
+*.avi
+*.mkv
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.svg
+*.tiff
+*.bmp
+*.zip
+*.tar
+*.gz
+*.json
+*.txt
+*.csv
+*.npy
+*.pkl
+*.h5
+*.pt
+*.onnx
 
+# Keep essential config files
+!config.json
+!input.json
+!requirements.txt
+!README.md
 
-test_generated_script.txt
-test_image_output.png
+# ----------------------------
+# Jupyter notebooks and checkpoints
+# ----------------------------
+.ipynb_checkpoints/
+*.ipynb~
 
+# ----------------------------
+# Editor and IDE metadata
+# ----------------------------
+.vscode/
+.idea/
+*.code-workspace
+*.iml
 
+# ----------------------------
+# System files (Linux)
+# ----------------------------
+*~
+*.swp
+*.swo
+.cache/
+.Trash-*/
+*.lock
+
+# ----------------------------
+# Project-specific paths
+# ----------------------------
+src/__pycache__/
+src/temp/
+data/
 test/
-ytw/
+notebooks/
+experiments/
 
+# ----------------------------
+# Machine learning artifacts
+# ----------------------------
+wandb/
+mlruns/
+lightning_logs/
+tensorboard/
+*.ckpt
+
+# ----------------------------
+# Docker / container configs
+# ----------------------------
+.docker/
+.dockerignore
+Dockerfile.*
+docker-compose*.yml
+
+
+
+
+.test_generated_script.txt
