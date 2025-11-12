@@ -1,72 +1,20 @@
-# ----------------------------
-# Python cache and build files
-# ----------------------------
+
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.pkl
-*.pdb
-*.egg-info/
-*.egg
-build/
-dist/
 
-# ----------------------------
-# Virtual environment
-# ----------------------------
-venv/
-.env/
-.env.bak/
+
 myenv/
-*.env
+.env
 
-# ----------------------------
-# IDE / Editor files
-# ----------------------------
-.vscode/
-.idea/
-*.swp
-*.swo
 
-# ----------------------------
-# OS files
-# ----------------------------
-.DS_Store
-Thumbs.db
 
-# ----------------------------
-# Output / Generated files
-# ----------------------------
 output/
 rough/
-*.mp4
-*.wav
-*.png
-*.jpg
-*.jpeg
-*.txt
-*.json
-*.log
 
-# Keep config and input templates, but ignore generated ones
-!config.json
-!input.json
 
-# ----------------------------
-# Test or temp data
-# ----------------------------
 test_generated_script.txt
 test_image_output.png
-*.tmp
-*.bak
-*.cache/
-*.pytest_cache/
 
-# ----------------------------
-# Project-specific folders
-# ----------------------------
-src/temp/
-src/__pycache__/
+
+test/
 ytw/
 
