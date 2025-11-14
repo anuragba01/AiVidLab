@@ -83,142 +83,70 @@ class AudioAnalyzer:
         min_chunk_ms: int = 0,
         max_chunk_ms: int = 0,
     ) -> List[Dict]:
-        """Creates pacing chunks by finding large gaps between timed words.
+        """Creates pacing chunks based on min/max duration and silence gaps.
 
-        After initial chunking by silence gaps, the function will:
-        - Merge adjacent chunks that are shorter than min_chunk_ms.
-        - Split chunks longer than max_chunk_ms into multiple chunks on word boundaries.
+        This function builds chunks of words that respect the desired duration
+        constraints, splitting on silences when possible.
 
         Returns a list of dicts with keys: 'raw_text', 'duration_ms', 'start_ms', 'end_ms'.
         """
         if not words:
             return []
-        pacing_chunks = []
-        current_chunk_word_indices = []
 
-        for i, word in enumerate(words):
-            current_chunk_word_indices.append(i)
+        # Ensure min/max are valid to prevent infinite loops or no-ops
+        if not min_chunk_ms or min_chunk_ms <= 0:
+            min_chunk_ms = 5 * 1000  # Default to 5s
+        if not max_chunk_ms or max_chunk_ms <= min_chunk_ms:
+            max_chunk_ms = min_chunk_ms * 2  # Default to 2x min
 
-            # Check for a long silence *after* the current word
-            is_last_word = (i == len(words) - 1)
-            if not is_last_word:
-                next_word = words[i + 1]
-                silence_duration = (next_word['start'] - word['end']) * 1000
-                if silence_duration >= min_silence_ms:
-                    # End of a chunk, save indices
-                    start_idx = current_chunk_word_indices[0]
-                    end_idx = current_chunk_word_indices[-1]
-                    chunk_start_time = words[start_idx]['start']
-                    chunk_end_time = words[end_idx]['end']
-                    chunk_text = " ".join([words[j]['text'].strip() for j in current_chunk_word_indices])
-                    chunk_duration_ms = (chunk_end_time - chunk_start_time) * 1000
+        chunks = []
+        current_chunk_start_index = 0
 
-                    pacing_chunks.append({
-                        'raw_text': chunk_text,
-                        'duration_ms': chunk_duration_ms,
-                        'start_ms': chunk_start_time * 1000,
-                        'end_ms': chunk_end_time * 1000,
-                        'word_indices': (start_idx, end_idx)
-                    })
-                    current_chunk_word_indices = []  # Reset for next chunk
-            else:
-                # Last word ends the final chunk
-                start_idx = current_chunk_word_indices[0]
-                end_idx = current_chunk_word_indices[-1]
-                chunk_start_time = words[start_idx]['start']
-                chunk_end_time = words[end_idx]['end']
-                chunk_text = " ".join([words[j]['text'].strip() for j in current_chunk_word_indices])
-                chunk_duration_ms = (chunk_end_time - chunk_start_time) * 1000
+        # Iterate through words to find split points
+        for i in range(len(words)):
+            start_time = words[current_chunk_start_index]['start']
+            end_time = words[i]['end']
+            duration = (end_time - start_time) * 1000
 
-                pacing_chunks.append({
-                    'raw_text': chunk_text,
-                    'duration_ms': chunk_duration_ms,
-                    'start_ms': chunk_start_time * 1000,
-                    'end_ms': chunk_end_time * 1000,
-                    'word_indices': (start_idx, end_idx)
+            is_last_word = i == len(words) - 1
+            
+            # Check for a significant pause after the current word
+            silence_after = (words[i + 1]['start'] - end_time) * 1000 if not is_last_word else 0
+
+            # Determine if we should end the chunk at the current word
+            split_here = False
+            if is_last_word:
+                split_here = True
+            elif duration > max_chunk_ms:
+                split_here = True
+            elif duration >= min_chunk_ms and silence_after >= min_silence_ms:
+                split_here = True
+
+            if split_here:
+                chunk_words = words[current_chunk_start_index : i + 1]
+                text = " ".join([w['text'].strip() for w in chunk_words])
+                
+                start_ms = chunk_words[0]['start'] * 1000
+                end_ms = chunk_words[-1]['end'] * 1000
+                
+                chunks.append({
+                    'raw_text': text,
+                    'start_ms': start_ms,
+                    'end_ms': end_ms,
+                    'duration_ms': end_ms - start_ms,
                 })
+                
+                # The next chunk starts at the next word
+                current_chunk_start_index = i + 1
 
-        # Post-process: merge chunks shorter than min_chunk_ms
-        if min_chunk_ms and pacing_chunks:
-            merged = []
-            i = 0
-            while i < len(pacing_chunks):
-                current = pacing_chunks[i]
-                # If current chunk is long enough, keep it
-                if current['duration_ms'] >= min_chunk_ms or i == len(pacing_chunks) - 1:
-                    merged.append(current)
-                    i += 1
-                    continue
+        # If the last chunk is too short (because of a forced split by max_duration),
+        # merge it with the previous one.
+        if len(chunks) > 1 and chunks[-1]['duration_ms'] < min_chunk_ms:
+            last_chunk = chunks.pop()
+            prev_chunk = chunks[-1]
+            
+            prev_chunk['raw_text'] += " " + last_chunk['raw_text']
+            prev_chunk['end_ms'] = last_chunk['end_ms']
+            prev_chunk['duration_ms'] = prev_chunk['end_ms'] - prev_chunk['start_ms']
 
-                # Otherwise, merge with the next chunk(s) until duration >= min_chunk_ms
-                j = i + 1
-                merged_chunk = dict(current)
-                while j < len(pacing_chunks) and merged_chunk['duration_ms'] < min_chunk_ms:
-                    next_chunk = pacing_chunks[j]
-                    # merge text and extend end_ms
-                    merged_chunk['raw_text'] = merged_chunk['raw_text'] + ' ' + next_chunk['raw_text']
-                    merged_chunk['end_ms'] = next_chunk['end_ms']
-                    merged_chunk['duration_ms'] = merged_chunk['end_ms'] - merged_chunk['start_ms']
-                    merged_chunk['word_indices'] = (merged_chunk['word_indices'][0], next_chunk['word_indices'][1])
-                    j += 1
-
-                merged.append(merged_chunk)
-                i = j
-
-            pacing_chunks = merged
-
-        # Post-process: split chunks longer than max_chunk_ms into multiple chunks
-        if max_chunk_ms and pacing_chunks:
-            split_chunks = []
-            for chunk in pacing_chunks:
-                if chunk['duration_ms'] <= max_chunk_ms:
-                    split_chunks.append(chunk)
-                    continue
-
-                # Need to split by word boundaries between start and end indices
-                start_idx, end_idx = chunk['word_indices']
-                word_block = words[start_idx:end_idx + 1]
-
-                # Build sub-chunks by accumulating words until they reach max_chunk_ms
-                sub_start_idx = start_idx
-                for k in range(len(word_block)):
-                    candidate_end_idx = start_idx + k
-                    sub_start_time = words[sub_start_idx]['start']
-                    sub_end_time = words[candidate_end_idx]['end']
-                    sub_duration = (sub_end_time - sub_start_time) * 1000
-                    if sub_duration >= max_chunk_ms:
-                        # create sub-chunk up to candidate_end_idx
-                        sub_text = ' '.join([w['text'].strip() for w in words[sub_start_idx:candidate_end_idx + 1]])
-                        split_chunks.append({
-                            'raw_text': sub_text,
-                            'duration_ms': sub_duration,
-                            'start_ms': sub_start_time * 1000,
-                            'end_ms': sub_end_time * 1000,
-                            'word_indices': (sub_start_idx, candidate_end_idx)
-                        })
-                        sub_start_idx = candidate_end_idx + 1
-
-                # Any remainder
-                if sub_start_idx <= end_idx:
-                    sub_start_time = words[sub_start_idx]['start']
-                    sub_end_time = words[end_idx]['end']
-                    sub_text = ' '.join([w['text'].strip() for w in words[sub_start_idx:end_idx + 1]])
-                    split_chunks.append({
-                        'raw_text': sub_text,
-                        'duration_ms': (sub_end_time - sub_start_time) * 1000,
-                        'start_ms': sub_start_time * 1000,
-                        'end_ms': sub_end_time * 1000,
-                        'word_indices': (sub_start_idx, end_idx)
-                    })
-
-            pacing_chunks = split_chunks
-
-        # Finalize format: remove helper fields and ensure only requested keys returned
-        final_chunks = []
-        for c in pacing_chunks:
-            final_chunks.append({
-                'raw_text': c['raw_text'],
-                'duration_ms': float(c['duration_ms'])
-            })
-
-        return final_chunks
+        return chunks

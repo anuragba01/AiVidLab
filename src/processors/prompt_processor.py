@@ -12,15 +12,6 @@ from google.genai import types
 
 logger = logging.getLogger(__name__)
 
-
-# Predefined safety settings (initialized once)
-SAFETY_SETTINGS = [
-    {"category": c, "threshold": types.HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE}
-    for c in list(types.HarmCategory)
-    if c != types.HarmCategory.HARM_CATEGORY_UNSPECIFIED
-]
-
-
 class PromptProcessor:
     """Generates image prompts by interpreting text within a creative and thematic context."""
 
