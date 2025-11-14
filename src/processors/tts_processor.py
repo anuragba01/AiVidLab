@@ -9,7 +9,8 @@ import os
 import time
 import logging
 from google import genai
-from google.generativeai import types
+from google.genai import types
+import wave
 
 logger = logging.getLogger(__name__)
 
@@ -26,14 +27,16 @@ class TTSProcessor:
         self.model_name = model_name
         logger.info(f"TTSProcessor initialized with model: {model_name}")
 
-    def process(self, text_to_speak: str, voice_name: str, api_timeout_s: int = 300) -> bytes:
+    def process(self, text_to_speak: str, voice_name: str) :
         """Generates audio bytes for the given text using the specified voice."""
         if not text_to_speak or not text_to_speak.strip():
             logger.warning("Empty text_to_speak provided; returning empty bytes.")
             return b""
-
+        
         start_time = time.time()
         try:
+            # The original code had 'genai.Client()', which is now part of the standard library.
+            # No change is needed here as it aligns with the provided snippet.
             client = genai.Client()
             generation_config = types.GenerateContentConfig(
                 response_modalities=["AUDIO"],
@@ -49,8 +52,7 @@ class TTSProcessor:
             response = client.models.generate_content(
                 model=self.model_name,
                 contents=text_to_speak,
-                generation_config=generation_config,
-                request_options={"timeout": api_timeout_s},
+                config=generation_config,
             )
 
             duration = time.time() - start_time
@@ -77,21 +79,33 @@ class TTSProcessor:
             raise RuntimeError(f"TTS synthesis failed: {e}") from e
 
 
-# --- Optional Test Block ---
+    def wave_file(self,filename, pcm, channels=1, rate=24000, sample_width=2):
+        with wave.open(filename, "wb") as wf:
+            wf.setnchannels(channels)
+            wf.setsampwidth(sample_width)
+            wf.setframerate(rate)
+            wf.writeframes(pcm)
+
+
+# --- Test Block ---
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
 
+    # Configuration from the user's second code snippet
     TEST_MODEL = "gemini-2.5-flash-preview-tts"
     TEST_VOICE = "Kore"
-    TEST_TEXT = "This is a production test of the TTS Processor module."
+    TEST_TEXT = "Say cheerfully: Have a wonderful day!"
+    OUTPUT_FILENAME = "out.wav"
 
-    tts = TTSProcessor(model_name=TEST_MODEL)
-    audio_bytes = tts.process(TEST_TEXT, TEST_VOICE)
+    try:
+        tts = TTSProcessor(model_name=TEST_MODEL)
+        audio_bytes = tts.process(TEST_TEXT, TEST_VOICE)
 
-    if audio_bytes:
-        output = "test_output.wav"
-        with open(output, "wb") as f:
-            f.write(audio_bytes)
-        logger.info(f"Audio file saved as {output} ({len(audio_bytes)} bytes).")
-    else:
-        logger.warning("No audio data returned.")
+        if audio_bytes:
+            tts.wave_file(OUTPUT_FILENAME, audio_bytes)
+            logger.info(f"Audio file saved as {OUTPUT_FILENAME} ({len(audio_bytes)} bytes).")
+        else:
+            logger.warning("No audio data returned.")
+
+    except (ValueError, EnvironmentError, RuntimeError) as e:
+        logger.error(f"An error occurred: {e}")
