@@ -76,6 +76,15 @@ class PromptProcessor:
             logger.exception("PromptProcessor failed during API call.")
             return f"A visually detailed interpretation of: {text_chunk}"
 
+    def generate_image_prompt(self, text_chunk: str, creative_brief: str, global_summary: str) -> str:
+        """Explicit API for generating prompts intended for the image generator.
+
+        Kept separate for clarity in orchestrator: this function returns the prompt
+        string that should be passed directly to `ImageGenerator.process`.
+        """
+        # Reuse existing `process` implementation to avoid duplicating LLM logic.
+        return self.process(text_chunk=text_chunk, creative_brief=creative_brief, global_summary=global_summary)
+
 
 # Optional standalone test block (kept minimal)
 if __name__ == "__main__":

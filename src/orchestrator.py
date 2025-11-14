@@ -78,25 +78,11 @@ class Orchestrator:
         self.temp_dir = os.path.join(self.run_dir, "temp")
         # Ensure the output directory exists and is empty (remove existing contents)
         os.makedirs(self.run_dir, exist_ok=True)
+        # ensure subdirectories exist so later writes won't fail
+        for d in (self.image_dir, self.audio_dir, self.temp_dir):
+            os.makedirs(d, exist_ok=True)
 
-        # Remove everything inside the output directory so the pipeline produces
-        # identical filenames each run. Be careful to only remove children, not
-        # the output directory itself.
-        for name in os.listdir(self.run_dir):
-            path = os.path.join(self.run_dir, name)
-            try:
-                if os.path.isfile(path) or os.path.islink(path):
-                    os.remove(path)
-                elif os.path.isdir(path):
-                    shutil.rmtree(path)
-            except Exception:
-                logger.warning(f"Failed to remove existing output item: {path}")
 
-        # recreate expected subdirectories
-        for dir_path in [self.image_dir, self.audio_dir, self.temp_dir]:
-            os.makedirs(dir_path, exist_ok=True)
-
-        logger.info(f"Output directory prepared (clean): {self.run_dir}")
 
     def _initialize_processors(self):
         """Initializes all processor modules."""
@@ -149,32 +135,7 @@ class Orchestrator:
             (PipelineStage.SUBTITLES, self._generate_subtitles),
             (PipelineStage.RENDER, self._render_video),
         ]
-        """
-      file_path = [os.path.join(self.run_dir, "generated_script.txt"),
-                    os.path.join(self.audio_dir, "master_audio.wav"),
-                    os.path.join(self.run_dir, 'analysis.json'),
-                    os.path.exists(image_seq_path),
-                    os.path.join(self.run_dir, 'subtitles.ass'),
-                    os.path.join(self.run_dir, final_output_filename)]
-        try:
-            analysis_result = None
-            
-            for stage, step_func in pipeline_steps:
-                self.current_stage = stage
-                logger.info(f"Executing stage: {stage.value}")
 
-                
-                for path in file_path:
-                    
-                    if os.path.exists(path):
-                        logger.info(f"{path} already exist")
-                        
-                    else:
-                        step_func()
-                        
-        finally:
-            pass
-            """
         
         
 
@@ -314,42 +275,55 @@ class Orchestrator:
         self.asset_paths['master_audio'] = master_audio_path
         logger.info(f"Audio saved: {master_audio_path}")
 
-    def _analyze_audio(self) -> Dict[str, Any]:
-        """Step 2: Audio Analysis"""
-        logger.info("Analyzing audio...")
-        
-        with open(self.asset_paths['master_audio'], 'rb') as f:
-            audio_bytes = f.read()
-        
-        result = self.audio_analyzer.process(
-            audio_bytes,
-            self.config['audio_analysis']
-        )
-        
-        if not result.get('pacing_chunks') or not result.get('word_timestamps'):
-            raise RuntimeError("Audio analysis returned incomplete data")
-        
-        logger.info(f"Analysis: {len(result['pacing_chunks'])} chunks, "
-                   f"{len(result['word_timestamps'])} words")
-        # Persist analysis so subsequent runs can skip analysis if present
-        try:
-            analysis_path = os.path.join(self.run_dir, 'analysis.json')
-            with open(analysis_path, 'w', encoding='utf-8') as f:
-                json.dump(result, f, indent=2)
-            self.asset_paths['analysis'] = analysis_path
-        except Exception:
-            logger.warning("Failed to persist analysis.json (non-critical)")
-        return result
 
-    def _chunking_audio(self,analysis_json):
-        """step 2.1:chunk the audio to make image"""
-        logger.info(f"start chunking")
-        chunk_sequence=[]
-        with open(analysis_json,'r') as an:
-            json_to_chunk= an.read()
-            
-        for i in json_to_chunk:
-            
+    def _analyze_audio(self):
+        """Step 2: Audio analysis — saves analysis.json and pacing_chunks.json"""
+        logger.info("Analyzing audio...")
+
+        master_audio_path = self.asset_paths.get('master_audio') or os.path.join(self.audio_dir, "master_audio.wav")
+        if not os.path.exists(master_audio_path):
+            raise FileNotFoundError(f"Master audio not found: {master_audio_path}")
+
+        # Call the audio analyzer. The current AudioAnalyzer expects (audio_bytes, chunk_config).
+        chunk_config = self.config.get('audio_analysis', {})
+        try:
+            with open(master_audio_path, 'rb') as f:
+                audio_bytes = f.read()
+
+            analysis_result = self.audio_analyzer.process(audio_bytes, chunk_config)
+        except TypeError:
+            # Backwards-compatible fallbacks: try path then AudioSegment with chunk_config
+            try:
+                analysis_result = self.audio_analyzer.process(master_audio_path, chunk_config)
+            except TypeError:
+                audio_seg = AudioSegment.from_file(master_audio_path)
+                analysis_result = self.audio_analyzer.process(audio_seg, chunk_config)
+
+        if not isinstance(analysis_result, dict):
+            raise RuntimeError("Audio analysis returned unexpected result")
+
+        # Persist full analysis
+        analysis_path = os.path.join(self.run_dir, 'analysis.json')
+        try:
+            self._save_file(analysis_path, json.dumps(analysis_result, indent=2))
+            self.asset_paths['analysis'] = analysis_path
+            logger.info(f"Analysis saved: {analysis_path}")
+        except Exception:
+            logger.warning("Failed to save analysis.json (non-critical)")
+
+        # Persist pacing chunks separately for easy access
+        pacing_chunks = analysis_result.get('pacing_chunks', [])
+        pacing_path = os.path.join(self.run_dir, 'pacing_chunks.json')
+        try:
+            self._save_file(pacing_path, json.dumps(pacing_chunks, indent=2))
+            self.asset_paths['pacing_chunks'] = pacing_path
+            logger.info(f"Pacing chunks saved: {pacing_path} ({len(pacing_chunks)} items)")
+        except Exception:
+            logger.warning("Failed to save pacing_chunks.json (non-critical)")
+
+        return analysis_result
+
+    
     
     def _generate_visuals(self, pacing_chunks: List[Dict]):
         """Step 3: Visual Content Generation"""
@@ -359,15 +333,19 @@ class Orchestrator:
         
         for i, chunk in enumerate(pacing_chunks):
             try:
-                prompt = self.prompt_processor.process(
+                # Generate an image-specific prompt from the chunk using the PromptProcessor.
+                # The prompt processor is intentionally responsible only for prompt creation.
+                prompt = self.prompt_processor.generate_image_prompt(
                     text_chunk=chunk['raw_text'],
                     creative_brief=self.input_data['style_brief']['creative_brief'],
                     global_summary=self.script_content
                 )
-                
+
+                # Pass the generated prompt to the ImageGenerator which handles model-specific
+                # API details and negative prompts.
                 image_bytes = self.image_generator.process(
-                    prompt,
-                    self.config['image_generation']['negative_prompt_terms']
+                    prompt=prompt,
+                    negative_prompt=self.config['image_generation']['negative_prompt_terms']
                 )
                 
                 if not image_bytes:
@@ -448,14 +426,14 @@ class Orchestrator:
         self.asset_paths['final_video'] = final_output_path
         logger.info(f"Video rendered: {final_output_path}")
 
-    def _cleanup(self):
-        """Cleanup temporary run artifacts.
+    """def _cleanup(self):
+
 
         The cleanup implementation is preserved but moved to the end of the file
         so the function definition appears last. The orchestrator currently does
         not call this automatically (the finally block was left as a no-op by
         request), but the method remains available for manual invocation.
-        """
+        
         if not self.config.get('cleanup_temp_dir', True):
             return
 
@@ -464,4 +442,4 @@ class Orchestrator:
                 shutil.rmtree(self.temp_dir)
                 logger.info("Temporary directory cleaned")
             except OSError as e:
-                logger.warning(f"Cleanup failed (non-critical): {e}")
+                logger.warning(f"Cleanup failed (non-critical): {e}")"""
