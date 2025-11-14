@@ -206,6 +206,12 @@ class Orchestrator:
             duration = time.time() - start_time
             logger.info(f"Pipeline completed successfully in {duration:.2f}s")
             logger.info(f"Final video: {self.asset_paths.get('final_video', 'UNKNOWN')}")
+            
+            try:
+                self._cleanup()
+            except Exception:
+                logger.exception("Cleanup failed after successful run (non-critical)")
+
             return True
 
         except Exception as e:
@@ -370,3 +376,36 @@ class Orchestrator:
 
         self.asset_paths['final_video'] = final_output_path
         logger.info(f"Video rendered: {final_output_path}")
+
+    def _cleanup(self):
+        """Removes all intermediate files from the output directory, preserving only the final video."""
+        if not self.config.get('cleanup_output_dir', False):
+            logger.info("Skipping cleanup of output directory as per configuration.")
+            return
+
+        logger.info("Cleaning up output directory...")
+        
+        final_video_path = self.asset_paths.get('final_video')
+        if not final_video_path or not os.path.exists(final_video_path):
+            logger.warning("Cleanup skipped: Final video path not found or file does not exist.")
+            return
+
+        final_video_filename = os.path.basename(final_video_path)
+
+        for item_name in os.listdir(self.run_dir):
+            if item_name == final_video_filename:
+                logger.debug(f"Preserving final video: {item_name}")
+                continue
+
+            item_path = os.path.join(self.run_dir, item_name)
+            try:
+                if os.path.isdir(item_path):
+                    shutil.rmtree(item_path)
+                    logger.info(f"Removed directory: {item_path}")
+                else:
+                    os.remove(item_path)
+                    logger.info(f"Removed file: {item_path}")
+            except OSError as e:
+                logger.warning(f"Error during cleanup of {item_path}: {e}", exc_info=True)
+        
+        logger.info("Cleanup of output directory complete.")

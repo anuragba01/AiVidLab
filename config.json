@@ -54,5 +54,6 @@
     "intro_duration_s": 3.0,
     "outro_duration_s": 2.0,
     "background_music_volume": 0.04
-  }
+  },
+  "cleanup_output_dir": true
 }
