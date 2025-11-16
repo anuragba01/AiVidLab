@@ -44,7 +44,7 @@ def generate_image_with_bytez(prompt: str, bytez_api_key: str, timeout: int = 18
     try:
         logger.info(f"Generating image using Bytez (Stable Diffusion XL) for prompt: '{prompt[:100]}...'")
         
-        result = bytez_model.run(prompt)
+        result = bytez_model.run(prompt,{"width": 1024, "height": 576})
         
         if hasattr(result, 'error') and result.error:
             raise ValueError(f"Bytez API returned error: {result.error}")

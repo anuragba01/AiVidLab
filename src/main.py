@@ -1,7 +1,7 @@
 import os
 import sys
 from dotenv import load_dotenv
-from orchestrator import Orchestrator
+from .orchestrator import Orchestrator
 
 # Load environment variables from the .env file
 load_dotenv()

@@ -17,13 +17,13 @@ from enum import Enum
 from typing import Dict, List, Any, Optional
 from pydub import AudioSegment
 
-from processors.script_generator import ScriptGenerator
-from processors.tts_processor import TTSProcessor
-from processors.audio_analyzer import AudioAnalyzer
-from processors.prompt_processor import PromptProcessor
-from processors.image_generator import ImageGenerator
-from processors.subtitle_processor import SubtitleProcessor
-from processors.video_renderer import VideoRenderer
+from .processors.script_generator import ScriptGenerator
+from .processors.tts_processor import TTSProcessor
+from .processors.audio_analyzer import AudioAnalyzer
+from .processors.prompt_processor import PromptProcessor
+from .processors.image_generator import ImageGenerator
+from .processors.subtitle_processor import SubtitleProcessor
+from .processors.video_renderer import VideoRenderer
 
 logger = logging.getLogger(__name__)
 
