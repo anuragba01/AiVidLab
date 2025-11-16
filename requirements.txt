@@ -9,6 +9,7 @@
 
 # --- Core Libraries ---
 google-generativeai # For all Gemini API interactions
+bytez             # For Stability AI Stable Diffusion as fallback image generation
 pydub             # For audio manipulation and silence detection
 Pillow            # For image processing (used in tests and potentially resizing)
 

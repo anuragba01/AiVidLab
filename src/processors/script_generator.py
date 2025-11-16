@@ -67,17 +67,13 @@ class ScriptGenerator:
        
         instructional_prompt = f"""
         Create a  cinematic, philosophical YouTube video script written in a reflective, narrative tone. The script should feel immersive, emotional, and thought-provoking, with smooth transitions and a strong sense of storytelling. Let the ideas unfold naturally through introspection, metaphors, and real-life observations. Keep the pacing calm and engaging, almost like a philosophical monologue meant to make the listener pause and think.
-
-        Do not include any headings, topic titles, or numbered sections anywhere in the script. The entire output should read as one continuous flow of ideas, expressed with clarity, depth, and elegance.
+        Do not include any headings, topic titles, or numbered sections anywhere in the script. The entire output should read as one continuous flow of ideas, expressed with clarity, depth, and elegance. Remember- in response only should be actual script and non even a word or symbol other than script since it is use directly for text generation.
 
         **CONTEXT & INSTRUCTIONS:**
         1.  **Primary Topics to Cover:** {", ".join(topics)}
         2.  **Keywords to Include naturally:** {", ".join(keywords)}
         3.  **Desired Tone:** {tone}
-        4.  **Target Length:** Approximately {target_word_count} words.
-        5.  **Structure:** The script must have a clear introduction, body, and conclusion.
-        6.  **HEADING FORMAT (CRITICAL):** All headings MUST be formatted like this: `:This is a Heading::`. Do not use markdown or any other format for headings.
-        7.  **Content:** Use clear, concise language suitable for a voice-over. Break up long paragraphs.
+        4.  **Target Length:** Approximately {target_word_count} words. must adhare the word count , this is necessory.
         8.  **Output Format:** Provide ONLY the raw script content. Do not add a title, introduction, apologies, or any other conversational text outside of the script itself.
 
         **Generated Video Script:**

@@ -87,7 +87,8 @@ class Orchestrator:
             self.prompt_processor = PromptProcessor(self.config['gemini_models']['llm'])
             self.image_generator = ImageGenerator(
                 model_name=self.config['gemini_models']['image_generator'],
-                api_key=os.getenv("GEMINI_API_KEY")
+                api_key=os.getenv("GEMINI_API_KEY"),
+                bytez_api_key=os.getenv("BYTEZ_API_KEY")
             )
             self.subtitle_processor = SubtitleProcessor()
             self.video_renderer = VideoRenderer()
