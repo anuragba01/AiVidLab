@@ -7,6 +7,7 @@
   },
   "gemini_models": {
     "tts": "gemini-2.5-flash-preview-tts",
+    "m_llm":"gemini-2.5-pro",
     "llm": "gemini-2.0-flash-lite",
     "image_generator": "gemini-2.0-flash-preview-image-generation"
   },
@@ -15,7 +16,7 @@
     "audio_rate_hz": 24000
   },
   "audio_analysis": {
-    "min_chunk_duration_s": 15.0,
+    "min_chunk_duration_s": 20.0,
     "max_chunk_duration_s": 30.0,
     "silence_threshold_db_offset": -26,
     "min_silence_len_ms": 300,

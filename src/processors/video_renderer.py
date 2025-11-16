@@ -9,6 +9,7 @@ Responsibilities:
 - Programmatically construct complex FFmpeg commands.
 - Create a primary video assembly from images and audio, including visual
   effects like zoom and crossfades (muxing).
+- Mix background music with main audio track.
 - Burn subtitles into a video file (hard coding).
 - Execute FFmpeg commands and handle success/failure reporting.
 """
@@ -16,7 +17,9 @@ import os
 import subprocess
 import traceback
 import math
-from typing import List, Dict, Any
+import random
+import shutil
+from typing import List, Dict, Any, Optional
 
 class VideoRenderer:
     """
@@ -54,6 +57,127 @@ class VideoRenderer:
             print(f"An unexpected error occurred: {e}")
             traceback.print_exc()
             return False
+
+    def _get_audio_duration(self, audio_path: str) -> float:
+        """
+        Get the duration of an audio file in seconds using ffprobe.
+        
+        Args:
+            audio_path (str): Path to the audio file.
+            
+        Returns:
+            float: Duration in seconds, or 0.0 if unable to determine.
+        """
+        try:
+            command = [
+                'ffprobe', '-v', 'error', '-show_entries', 'format=duration',
+                '-of', 'default=noprint_wrappers=1:nokey=1:noprint_wrappers=1',
+                audio_path
+            ]
+            result = subprocess.run(command, capture_output=True, text=True, check=True)
+            return float(result.stdout.strip())
+        except Exception as e:
+            print(f"Warning: Could not determine duration of {audio_path}: {e}")
+            return 0.0
+
+    def _select_background_music_file(self, music_dir: str) -> Optional[str]:
+        """
+        Select a random background music file from the specified directory.
+        Supports common audio formats: mp3, wav, aac, ogg, m4a, flac.
+        
+        Args:
+            music_dir (str): Path to the directory containing background music files.
+            
+        Returns:
+            Optional[str]: Path to the selected file, or None if no files found.
+        """
+        if not os.path.isdir(music_dir):
+            print(f"Warning: Background music directory not found: {music_dir}")
+            return None
+        
+        supported_formats = ('.mp3', '.wav', '.aac', '.ogg', '.m4a', '.flac')
+        music_files = [
+            f for f in os.listdir(music_dir) 
+            if os.path.isfile(os.path.join(music_dir, f)) and f.lower().endswith(supported_formats)
+        ]
+        
+        if not music_files:
+            print(f"Warning: No background music files found in {music_dir}")
+            return None
+        
+        selected_file = random.choice(music_files)
+        full_path = os.path.join(music_dir, selected_file)
+        print(f"Selected background music: {selected_file}")
+        return full_path
+
+    def mix_background_music(
+        self,
+        main_audio_path: str,
+        background_music_dir: str,
+        background_music_volume: float,
+        output_path: str
+    ) -> bool:
+        """
+        Mix background music with the main audio track.
+        
+        The background music will be looped if necessary to match the duration of the main audio.
+        The volumes are blended: main_audio_volume + background_music_volume (normalized).
+        
+        Args:
+            main_audio_path (str): Path to the main audio (narration/dialogue).
+            background_music_dir (str): Path to directory containing background music files.
+            background_music_volume (float): Volume level for background music (0.0 to 1.0).
+            output_path (str): Path to save the mixed audio file.
+            
+        Returns:
+            bool: True on success, False on failure.
+        """
+        # Select a random background music file
+        bg_music_path = self._select_background_music_file(background_music_dir)
+        if not bg_music_path:
+            print("Warning: No background music selected. Using main audio only.")
+            # If no background music, just copy the main audio
+            try:
+                shutil.copy(main_audio_path, output_path)
+                return True
+            except Exception as e:
+                print(f"Error copying main audio: {e}")
+                return False
+        
+        # Get duration of main audio
+        main_duration = self._get_audio_duration(main_audio_path)
+        if main_duration <= 0:
+            print(f"Error: Could not determine duration of main audio")
+            return False
+        
+        print(f"Main audio duration: {main_duration:.2f}s")
+        
+        # Calculate background music volume (0-1 range, where 1 is full volume)
+        bg_volume = max(0.0, min(1.0, background_music_volume))
+        main_volume = 1.0
+        
+        # FFmpeg command to mix audio:
+        # 1. Loop background music to match main audio duration
+        # 2. Adjust volumes
+        # 3. Mix both audio streams
+        command = [
+            'ffmpeg', '-y',
+            '-i', main_audio_path,
+            '-stream_loop', '-1',  # Loop the background music indefinitely
+            '-i', bg_music_path,
+            '-filter_complex', (
+                f'[0:a]volume={main_volume}[main];'
+                f'[1:a]volume={bg_volume}[bg];'
+                f'[main][bg]amix=inputs=2:duration=first[out]'
+            ),
+            '-map', '[out]',
+            '-t', str(main_duration),  # Limit output to main audio duration
+            '-c:a', 'aac',
+            '-b:a', '192k',
+            output_path
+        ]
+        
+        return self._execute_ffmpeg_command(command, "Background Music Mixing")
 
     def assemble_primary_video(
         self,

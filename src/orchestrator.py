@@ -79,7 +79,7 @@ class Orchestrator:
     def _initialize_processors(self):
         """Initializes all processor modules."""
         try:
-            self.script_generator = ScriptGenerator(self.config['gemini_models']['llm'])
+            self.script_generator = ScriptGenerator(self.config['gemini_models']['m_llm'])
             self.tts_processor = TTSProcessor(self.config['gemini_models']['tts'])
             self.audio_analyzer = AudioAnalyzer(
                 model_size=self.config['audio_analysis']['stt_whisper_model_size']
@@ -355,18 +355,42 @@ class Orchestrator:
     def _render_video(self):
         """Step 6: Final Video Rendering"""
         logger.info("Rendering final video...")
+        
+        # Prepare audio paths
+        main_audio_path = self.asset_paths['master_audio']
+        mixed_audio_path = os.path.join(self.temp_dir, "audio_with_background.aac")
         temp_video_path = os.path.join(self.temp_dir, "video_with_audio.mp4")
         final_output_filename = self.input_data['video_details'].get('output_filename', 'final_video.mp4')
         final_output_path = os.path.join(self.run_dir, final_output_filename)
 
+        # Step 1: Mix background music with main audio (if background music directory is provided)
+        background_music_dir = self.input_data.get('video_details', {}).get('background_music_path')
+        if background_music_dir:
+            logger.info("Mixing background music with main audio...")
+            bg_music_volume = self.config.get('intro_outro_settings', {}).get('background_music_volume', 0.04)
+            
+            if not self.video_renderer.mix_background_music(
+                main_audio_path=main_audio_path,
+                background_music_dir=background_music_dir,
+                background_music_volume=bg_music_volume,
+                output_path=mixed_audio_path
+            ):
+                logger.warning("Background music mixing failed. Continuing with main audio only.")
+                mixed_audio_path = main_audio_path
+        else:
+            logger.info("No background music directory provided. Using main audio only.")
+            mixed_audio_path = main_audio_path
+
+        # Step 2: Assemble primary video with mixed audio
         if not self.video_renderer.assemble_primary_video(
             image_sequence=self.asset_paths['image_sequence'],
-            audio_path=self.asset_paths['master_audio'],
+            audio_path=mixed_audio_path,
             render_config=self.config['video_rendering'],
             output_path=temp_video_path
         ):
             raise RuntimeError("Video assembly failed")
 
+        # Step 3: Burn subtitles
         if not self.video_renderer.burn_subtitles(
             video_path=temp_video_path,
             subtitle_path=self.asset_paths['subtitles'],

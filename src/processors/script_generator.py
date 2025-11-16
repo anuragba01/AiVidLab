@@ -66,8 +66,9 @@ class ScriptGenerator:
         logger.info(f"Generating a ~{target_word_count}-word script with a '{tone}' tone...")
        
         instructional_prompt = f"""
-        **ROLE:** You are an expert video scriptwriter for engaging online content.
-        **TASK:** Write a complete, well-structured video script based on the provided details.
+        Create a  cinematic, philosophical YouTube video script written in a reflective, narrative tone. The script should feel immersive, emotional, and thought-provoking, with smooth transitions and a strong sense of storytelling. Let the ideas unfold naturally through introspection, metaphors, and real-life observations. Keep the pacing calm and engaging, almost like a philosophical monologue meant to make the listener pause and think.
+
+        Do not include any headings, topic titles, or numbered sections anywhere in the script. The entire output should read as one continuous flow of ideas, expressed with clarity, depth, and elegance.
 
         **CONTEXT & INSTRUCTIONS:**
         1.  **Primary Topics to Cover:** {", ".join(topics)}
