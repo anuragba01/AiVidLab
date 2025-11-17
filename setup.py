@@ -3,6 +3,7 @@ import subprocess
 import sys
 import platform
 import shutil
+import os
 
 
 def run(cmd):
@@ -53,6 +54,22 @@ def install_python_packages():
         run(f"pip install {p}")
 
 
+
+# CREATE .env FILE ( IF IT DOESN'T EXIST)
+def create_env_file():
+    env_path = ".env"
+
+    if os.path.exists(env_path):
+        return  # skip if already exists
+
+    with open(env_path, "w") as f:
+        f.write("GEMINI_API_KEY=\n")
+        f.write("BYTEZ_API_KEY=\n")
+
+    print(".env file created. Please add your API keys.")
+
+
+
 def main():
     print("Checking FFmpeg...")
     if not ffmpeg_installed():
@@ -63,6 +80,8 @@ def main():
 
     print("Installing Python packages...")
     install_python_packages()
+
+    create_env_file()
 
     print("Setup complete.")
 
