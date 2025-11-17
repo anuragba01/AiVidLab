@@ -25,8 +25,8 @@ from io import BytesIO
 from google import genai
 from google.genai import types
 
-from ..utilies.fallback_image_generator import generate_image_with_bytez
-from ..utilies.image_utils import convert_to_png
+from src.utilities.fallback_image_generator import generate_image_with_bytez
+from src.utilities.image_utils import convert_to_png
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,7 @@ class ImageGenerator:
         self.model_name = model_name
         
         # Store Bytez key for fallback, but do not initialize here
-        self.bytez_api_key = "f8c08d0ec1768d196a6186da16281c05" or os.getenv("BYTEZ_API_KEY")
+        self.bytez_api_key = os.getenv("BYTEZ_API_KEY")
         self.gemini_has_failed = False
         
         logger.info("ImageGenerator initialized successfully.")
