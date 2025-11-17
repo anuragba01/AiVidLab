@@ -10,6 +10,7 @@
     "m_llm":"gemini-2.5-pro",
     "llm": "gemini-2.0-flash-lite",
     "image_generator": "gemini-2.0-flash-preview-image-generation"
+    
   },
   "tts_settings": {
     "voice_name": "Charon",

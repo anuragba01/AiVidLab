@@ -58,7 +58,7 @@ class ScriptGenerator:
         Returns:
             str: The generated script as a single formatted string, or None on failure.
         """
-        # --- 1. Input Validation ---
+        # 1. Input Validation 
         if not topics:
             logger.error("At least one topic must be provided to generate a script.")
             return None
@@ -79,7 +79,7 @@ class ScriptGenerator:
         **Generated Video Script:**
         """
 
-        # --- 2. API Call with Retry Logic ---
+        # 2. API Call with Retry Logic 
         
         try:
             response = self.client.models.generate_content(
@@ -87,7 +87,7 @@ class ScriptGenerator:
                 contents=instructional_prompt
             )
             
-            # --- 3. Response Validation ---
+            # 3. Response Validation
             if response.text and response.text.strip():
                 logger.info("Successfully generated video script.")
                 return response.text.strip()
@@ -104,36 +104,3 @@ class ScriptGenerator:
         return None # Return None if all attempts fail or response is empty
 
 
-# --- Independent Test Block ---
-# This code only runs when you execute this file directly (e.g., `python src/processors/script_generator.py`)
-if __name__ == '__main__':
-    # --- Setup for Testing ---
-    # Configure basic logging to see the output from the class
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-    # Find the project's root directory to locate the .env file
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    load_dotenv(dotenv_path=os.path.join(project_root, '.env'))
-
-    # --- Test Execution ---
-    logger.info("--- Running Independent Test for ScriptGenerator ---")
-    
-    # Instantiate the tool with the model you want to test
-    tool = ScriptGenerator("gemini-2.0-flash-lite")
-
-    # Call the processor with test data
-    script = tool.process(
-        topics=["The philosophy of Stoicism", "Practical applications in modern life"],
-        keywords=["Marcus Aurelius", "resilience", "virtue"],
-        tone="calm, inspirational",
-        target_word_count=50
-    )
-
-    # --- Verification ---
-    if script:
-        logger.info("---  Test SUCCESS ---")
-        print("\n--- Generated Script ---")
-        print(script)
-        print("------------------------")
-    else:
-        logger.error("--- Test FAILED: The process returned None. ---")
