@@ -80,35 +80,21 @@ class VideoRenderer:
             print(f"Warning: Could not determine duration of {audio_path}: {e}")
             return 0.0
 
-    def _select_background_music_file(self, music_dir: str) -> Optional[str]:
+    def _select_background_music_file(self, music_path: str) -> Optional[str]:
         """
-        Select a random background music file from the specified directory.
-        Supports common audio formats: mp3, wav, aac, ogg, m4a, flac.
-        
+        Validate and return the background music file path.
+
         Args:
-            music_dir (str): Path to the directory containing background music files.
+            music_path (str): Path to the background music file.
             
         Returns:
-            Optional[str]: Path to the selected file, or None if no files found.
+            Optional[str]: Path to the file if it exists, or None if not found.
         """
-        if not os.path.isdir(music_dir):
-            print(f"Warning: Background music directory not found: {music_dir}")
+        if not os.path.exists(music_path):
+            print(f"Warning: Background music directory not found: {music_path}")
             return None
         
-        supported_formats = ('.mp3', '.wav', '.aac', '.ogg', '.m4a', '.flac')
-        music_files = [
-            f for f in os.listdir(music_dir) 
-            if os.path.isfile(os.path.join(music_dir, f)) and f.lower().endswith(supported_formats)
-        ]
-        
-        if not music_files:
-            print(f"Warning: No background music files found in {music_dir}")
-            return None
-        
-        selected_file = random.choice(music_files)
-        full_path = os.path.join(music_dir, selected_file)
-        print(f"Selected background music: {selected_file}")
-        return full_path
+        return music_path
 
     def mix_background_music(
         self,
