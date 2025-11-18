@@ -22,7 +22,7 @@ The core functionalities include:
 
 ---
 
-## How It Works
+## How AiVidLab Works
 
 The video generation process is orchestrated as a pipeline, with each step feeding into the next:
 
@@ -35,6 +35,8 @@ The video generation process is orchestrated as a pipeline, with each step feedi
 7.  **Video Rendering:** The images, audio, and subtitles are combined to render the final video.
 
 ---
+## Architect of AiVidLab
+ ![Architect of AiVidLab](https://github.com/user-attachments/assets/efd57e8e-369b-4629-ab29-f460dbf7eb2c)
 
 ## Getting Started
 
