@@ -1,11 +1,13 @@
 import logging
 from src.processors.tts_processor import TTSProcessor
 logger = logging.getLogger(__name__)
-
+from dotenv import load_dotenv
 
 # --- Test Block ---
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
+    
+    load_dotenv()
 
     # Configuration from the user's second code snippet
     TEST_MODEL = "gemini-2.5-flash-preview-tts"

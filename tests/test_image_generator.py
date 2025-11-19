@@ -1,9 +1,12 @@
 import os
 from src.processors.image_generator import ImageGenerator
+from dotenv import load_dotenv
 
-# --- Independent Test Block ---
+
+# Independent Test Block 
 if __name__ == '__main__':
     print("\n--- Running Independent Test for ImageGenerator ---")
+    load_dotenv()
     
     test_api_key = os.getenv("GEMINI_API_KEY")
     

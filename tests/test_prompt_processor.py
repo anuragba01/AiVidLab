@@ -1,10 +1,13 @@
 import logging
 from src.processors.prompt_processor import PromptProcessor
+from dotenv import load_dotenv
+
 
 # Optional standalone test block (kept minimal)
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
-
+    load_dotenv()
+    
     TEST_MODEL = "gemini-2.0-flash-lite"
     TEST_TEXT = (
         "The true measure of a man is not how he behaves in comfort, "

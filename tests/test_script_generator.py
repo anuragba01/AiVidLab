@@ -14,9 +14,7 @@ if __name__ == '__main__':
     # Configure basic logging to see the output from the class
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    # Find the project's root directory to locate the .env file
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    load_dotenv(dotenv_path=os.path.join(project_root, '.env'))
+    load_dotenv()
 
     # --- Test Execution ---
     logger.info("--- Running Independent Test for ScriptGenerator ---")

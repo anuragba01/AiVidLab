@@ -13,19 +13,10 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     logger.info("Running standalone test for AudioAnalyzer...")
 
-    # Load .env from project root (optional)
-    project_root = os.path.dirname(
-        os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__))
-        )
-    )
-    env_path = os.path.join(project_root, ".env")
-    if os.path.exists(env_path):
-        from dotenv import load_dotenv
-        load_dotenv(env_path)
-        logger.info("Loaded .env file.")
-    else:
-        logger.warning(".env file not found.")
+    from dotenv import load_dotenv
+    load_dotenv()
+    logger.info("Loaded .env file.")
+   
 
     # ---------------------------
     #  Minimal test audio sample

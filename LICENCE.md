@@ -1,39 +1,73 @@
-# **License**
+# **Enhanced Non-Commercial License**
 
-**Copyright © [2025] [ANURAG KUMAR]**
+**Copyright © 2025 ANURAG KUMAR**
 
-Permission is hereby granted to any individual or open-source developer to use, copy, modify, and distribute this software **solely for:**
-
-1. **Personal projects**, and
-2. **Non-commercial open-source projects** that do not generate revenue and are not used within a commercial context.
----
-
-## **Restrictions**
-
-The following uses are **strictly prohibited**:
-
-1. **Commercial Use**
-   The software may not be used, in whole or in part, for any commercial purpose.
-   This includes (but is not limited to) selling, licensing, monetizing, or integrating the software into any product, service, or system that generates revenue, directly or indirectly.
-
-2. **Organizational / Business Use**
-   No company, startup, institution, or organization may use this software for internal operations, commercial activities, production workloads, client work, or business-related purposes.
-
-3. **Commercial Derivative Works**
-   Modifying or extending the software for commercial distribution or business usage is not allowed.
----
-
-## **Contributions**
-
-By submitting any contribution (including code, documentation, fixes, or improvements), the contributor agrees that:
-
-* The **original author retains full rights** to the project and all derivative works.
-* Contributions are made under this same license, with **no transfer of ownership**.
-* The author may use, modify, publish, relicense, or distribute contributions without requiring additional permission.
-
-Contributors waive any claim to commercial rights or compensation.
+Permission is granted to any individual to use, copy, modify, and distribute this software **strictly under the following conditions**:
 
 ---
-## **Disclaimer**
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# **1. Permitted Uses**
+
+You may use this software **only for**:
+
+1. **Personal projects**, learning, experimentation, or hobby use.
+2. **Non-commercial open-source projects** that:
+
+   * Do not generate revenue of any kind.
+   * Are not used to support any commercial, business, or organizational activity.
+   * Are intended for public, community, or educational benefit.
+
+No other uses are allowed unless the author provides written permission.
+
+---
+
+# **2. Prohibited Uses**
+
+The following activities are **explicitly and strictly prohibited**:
+
+### **2.1 Commercial Use**
+
+The software may not be used, in full or in part, for any activity that generates revenue or financial advantage, including but not limited to:
+
+* Selling or licensing the software.
+* Using it in paid products or services.
+* Monetizing workflows or outputs.
+* Using it as part of any revenue-generating system.
+
+### **2.2 Organizational / Business Use**
+
+No company, startup, institution, organization, or team may:
+
+* Use the software internally.
+* Use it for production workloads.
+* Use it to provide services to clients.
+* Integrate it into business processes or operations.
+
+This applies even if the use does not directly generate revenue.
+
+### **2.3 Commercial Derivative Works**
+
+You may not modify, adapt, or extend the software for:
+
+* Commercial distribution,
+* Organizational use,
+* Any business-related purpose.
+
+---
+
+# **3. Contributions**
+
+By submitting any form of contribution (code, documentation, fixes, enhancements), the contributor agrees that:
+
+1. The **original author retains full ownership** of the project and all derivatives.
+2. Contributions are provided under this same license.
+3. No transfer of rights, ownership, or claims occurs.
+4. The author may use, modify, merge, relicense, or distribute contributions without seeking further permission.
+5. Contributors waive any claim to compensation or commercial rights related to their contributions.
+
+---
+# **5. Disclaimer**
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF THE SOFTWARE OR INABILITY TO USE THE SOFTWARE.
+
+---

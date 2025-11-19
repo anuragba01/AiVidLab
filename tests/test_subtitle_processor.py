@@ -12,27 +12,9 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
     logger.info("Running standalone SubtitleProcessor test…")
 
-    # --------------------------------------------------------
-    # Load .env (optional)
-    # --------------------------------------------------------
-    project_root = os.path.dirname(
-        os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__))
-        )
-    )
-    env_path = os.path.join(project_root, ".env")
-
-    if os.path.exists(env_path):
-        from dotenv import load_dotenv
-        load_dotenv(env_path)
-        logger.info(".env file loaded.")
-    else:
-        logger.warning(".env file not found. Continuing without it.")
-
-    # --------------------------------------------------------
     # Minimal fake word-timestamp data (NO audio needed)
     # Simulates a tiny 2-second speech segment.
-    # --------------------------------------------------------
+
     word_timestamps = [
         {"text": "Hello", "start": 0.00, "end": 0.50},
         {"text": "world", "start": 0.60, "end": 1.00},
@@ -40,16 +22,12 @@ if __name__ == "__main__":
         {"text": "works", "start": 1.50, "end": 1.90},
     ]
 
-    # --------------------------------------------------------
     # Example headings to align
-    # --------------------------------------------------------
     heading_strings = [
         "Hello world"
     ]
 
-    # --------------------------------------------------------
     # Minimal config (safe defaults)
-    # --------------------------------------------------------
     style_config = {
         "default": {
             "font_name": "Arial",
