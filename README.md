@@ -104,3 +104,6 @@ Contributions are welcome! If you have any ideas or suggestions please open an i
 
 ## License
 Visit licence section to know about licence.
+
+## Sample Video
+![Demo](https://github.com/anuragba01/AiVidLab/blob/media/src/cuttwo.mp4)
