@@ -1,12 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [ main ]
-
+   workflow_dispatch:
 
 jobs:
-  # JOB 1: Quality (Runs, but won't fail the build if errors are found)
   quality:
     name: Code Quality
     runs-on: ubuntu-latest
@@ -23,20 +20,19 @@ jobs:
         run: pip install ruff mypy types-setuptools
 
       - name: Run Ruff
-        continue-on-error: true  # 🟢 Shows errors but stays Green
+        continue-on-error: true  
         run: ruff check . --quiet
 
       - name: Run MyPy
-        continue-on-error: true  # 🟢 Shows errors but stays Green
+        continue-on-error: true  
         run: mypy . --ignore-missing-imports
 
-  # JOB 2: Tests (Runs immediately, stops if error found)
   test:
     name: Test Ubuntu / Py ${{ matrix.python-version }}
-    runs-on: ubuntu-latest # 💸 Using only Ubuntu to save free minutes
+    runs-on: ubuntu-latest 
     
     strategy:
-      fail-fast: true # 🛑 If Python 3.10 fails, cancel 3.11/3.12 to save time
+      fail-fast: true 
       matrix:
         python-version: ["3.12"]
 
@@ -51,13 +47,11 @@ jobs:
           cache: "pip"
           cache-dependency-path: requirements.txt
 
-      # 🛠️ Install FFmpeg (Required for pydub/audio)
       - name: Install FFmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      # 📦 Install Python Libraries
       - name: Install dependencies
         shell: bash
         run: |
@@ -65,18 +59,14 @@ jobs:
           pip install pytest pytest-cov
           pip install -r requirements.txt
 
-      # 🧪 Run Tests
       - name: Run Tests
         env:
-          # 🔑 Inject Secrets
           GEMINI_API_KEY: "${{ secrets.GEMINI_API_KEY }}"
           BYTEZ_API_KEY: "${{ secrets.BYTEZ_API_KEY }}"
-          # 🔧 FIX "ModuleNotFoundError": Add current folder to Python Path
           PYTHONPATH: . 
         run: |
           # Using 'python -m pytest' ensures 'src' is found
-          python -m pytest --cov=. --cov-report=xml --cov-report=term-missing --maxfail=1 --disable-warnings
-
+          python -m pytest tests/unit_test --cov=src --cov-report=xml --maxfail=1 --disable-warnings
       - name: Upload coverage
         uses: actions/upload-artifact@v4
         with:

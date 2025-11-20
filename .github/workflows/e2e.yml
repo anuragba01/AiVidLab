@@ -1,0 +1,56 @@
+name: End-to-End Tests (Expensive)
+
+# 1. MAGIC SWITCH: Only runs when you click the button
+on:
+  workflow_dispatch:
+    inputs:
+      # Optional: Let you choose which model to test when clicking
+      model_name:
+        description: 'Model to use (e.g., gemini-2.0-flash-lite)'
+        required: false
+        default: 'gemini-2.0-flash-lite'
+
+jobs:
+  full-system-test:
+    name: Generate Full Video
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: requirements.txt
+
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov
+          pip install -r requirements.txt
+
+      # 2. THE E2E COMMAND
+      - name: Run E2E Tests
+        env:
+          GEMINI_API_KEY: "${{ secrets.GEMINI_API_KEY }}"
+          BYTEZ_API_KEY: "${{ secrets.BYTEZ_API_KEY }}"
+          PYTHONPATH: .
+          # Pass the input from the button to the test
+          TEST_MODEL_NAME: ${{ inputs.model_name }}
+        run: |
+          # Run ONLY tests marked as 'e2e'
+          python -m pytest tests/E2E_test -s --disable-warnings
+
+      # 3. SAVE THE VIDEO (So you can see the result)
+      - name: Upload Generated Video
+        if: always() # Upload even if the test fails (to see partial results)
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-video-result
+          path: output/*.mp4  # 👈 Adjust this to where your code saves videos
+          retention-days: 5   # Delete after 5 days to save space

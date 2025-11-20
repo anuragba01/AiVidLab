@@ -71,9 +71,10 @@ The project also depends on the following Python packages, which will be install
     ```
 
 3.  **Run the setup script:**
-    This script will install all the necessary dependencies.
+    This script will install all the necessary dependencies and create `.env` file.
     ```bash
-    python requirement.py
+    chmod +x setup.sh
+    ./setup.sh
     ```
 
 ### Configuration
@@ -95,6 +96,9 @@ BYTEZ_API_KEY=YOUR_BYTEZ_API_KEY
 3.  **Find your video:** The generated video will be saved in the `output` directory.
 
 ---
+
+## Testing
+Please visit the **`.github/workflows`** folder for information related to testing.
 
 ## Contributing
 
