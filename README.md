@@ -10,7 +10,7 @@
 
 ## Overview
 
-AiVidLab is a powerful, end-to-end pipeline for generating videos automatically. By providing a topic and some initial instructions, this tool leverages Large Language Models (LLMs) and other AI services to produce a complete video. The pipeline handles everything from scriptwriting to final rendering, making it an ideal solution for automating video content creation.
+AiVidLab is an end-to-end pipeline for generating videos automatically. By providing a topic and some initial instructions, this tool leverages Large Language Models (LLMs) and other AI services to produce a complete video. The pipeline handles everything from scriptwriting to final rendering, making it an ideal solution for automating video content creation.
 
 The core functionalities include:
 - Script Generation
@@ -90,7 +90,7 @@ BYTEZ_API_KEY=YOUR_BYTEZ_API_KEY
 1.  **Edit `input.json`:** Define the topic and instructions for your video.
 2.  **Run the pipeline:**
     ```bash
-    python src/main.py
+    python -m src.main.py
     ```
 3.  **Find your video:** The generated video will be saved in the `output` directory.
 
