@@ -16,8 +16,6 @@ Responsibilities:
 import os
 import subprocess
 import traceback
-import math
-import random
 import shutil
 from typing import List, Dict, Any, Optional
 
@@ -133,7 +131,7 @@ class VideoRenderer:
         # Get duration of main audio
         main_duration = self._get_audio_duration(main_audio_path)
         if main_duration <= 0:
-            print(f"Error: Could not determine duration of main audio")
+            print("Error: Could not determine duration of main audio")
             return False
         
         print(f"Main audio duration: {main_duration:.2f}s")

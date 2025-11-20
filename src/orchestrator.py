@@ -11,11 +11,9 @@ import time
 import shutil
 import traceback
 import re
-import io
 import logging
 from enum import Enum
-from typing import Dict, List, Any, Optional
-from pydub import AudioSegment
+from typing import Dict, List, Any
 
 from .processors.script_generator import ScriptGenerator
 from .processors.tts_processor import TTSProcessor

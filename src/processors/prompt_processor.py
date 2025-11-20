@@ -8,7 +8,6 @@ Uses a Gemini LLM to interpret input text, creative brief, and overall context.
 import os
 import logging
 from google import genai
-from google.genai import types
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +62,7 @@ class PromptProcessor:
             logger.warning("LLM returned empty response; using fallback prompt.")
             return f"A cinematic, visually rich depiction of: {text_chunk}"
 
-        except Exception as e:
+        except Exception:
             logger.exception("PromptProcessor failed during API call.")
             return f"A visually detailed interpretation of: {text_chunk}"
 

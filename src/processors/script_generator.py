@@ -1,12 +1,9 @@
 # Save this as src/processors/script_generator.py
 
-import os
 import sys
-import time
 import logging
 import traceback
 from typing import List
-from dotenv import load_dotenv
 
 try:
     from google import genai

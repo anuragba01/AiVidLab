@@ -1,5 +1,4 @@
 import logging
-import os
 from dotenv import load_dotenv
 
 from src.processors.script_generator import ScriptGenerator

@@ -3,7 +3,6 @@ from src.processors.audio_analyzer import AudioAnalyzer
 
 if __name__ == "__main__":
     import logging
-    import os
 
     logging.basicConfig(
         level=logging.INFO,

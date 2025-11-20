@@ -2,7 +2,6 @@ from src.processors.subtitle_processor import SubtitleProcessor
 
 if __name__ == "__main__":
     import logging
-    import os
 
     logging.basicConfig(
         level=logging.INFO,

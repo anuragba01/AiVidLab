@@ -8,11 +8,9 @@ This version faithfully reimplements the tested and complex logic from the
 original notebook (Cell 10), including fuzzy heading alignment and detailed
 line-breaking rules, while conforming to our new modular architecture.
 """
-import os
 import re
 import difflib
-import traceback
-from typing import List, Dict, Any
+from typing import List, Dict
 
 # We import the AudioAnalyzer here *only* for the fallback mechanism.
 from .audio_analyzer import AudioAnalyzer

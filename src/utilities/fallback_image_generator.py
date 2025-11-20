@@ -1,7 +1,5 @@
-import os
 import logging
 import requests
-from io import BytesIO
 
 try:
     from bytez import Bytez

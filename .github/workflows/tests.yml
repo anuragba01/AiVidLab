@@ -30,7 +30,6 @@ jobs:
 
   test:
     name: Test ${{ matrix.os }} / Py ${{ matrix.python-version }}
-    needs: quality
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

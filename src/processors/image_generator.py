@@ -18,8 +18,6 @@ import time
 import logging
 
 # Necessary import for the _convert_to_png function
-from PIL import Image
-from io import BytesIO
 
 # Use the specific imports from your example
 from google import genai
