@@ -1,10 +1,10 @@
 import logging
+import pytest
 from src.processors.prompt_processor import PromptProcessor
 from dotenv import load_dotenv
 
 
-# Optional standalone test block (kept minimal)
-if __name__ == "__main__":
+def test_prompt_processing():
     logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
     load_dotenv()
     
@@ -19,4 +19,9 @@ if __name__ == "__main__":
     processor = PromptProcessor(TEST_MODEL)
     result = processor.process(TEST_TEXT, TEST_BRIEF, TEST_SUMMARY)
 
+    assert result is not None, "Process returned None"
+    assert isinstance(result, str), f"Expected a string, but got {type(result)}"
     print("\nGenerated Prompt:\n", result)
+
+if __name__ == "__main__":
+    test_prompt_processing()

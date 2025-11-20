@@ -1,4 +1,5 @@
 import logging
+import pytest
 from dotenv import load_dotenv
 
 from src.processors.script_generator import ScriptGenerator
@@ -8,7 +9,8 @@ from src.processors.script_generator import ScriptGenerator
 # Set up a logger for this module. This is better than print() for production.
 logger = logging.getLogger(__name__)
 
-if __name__ == '__main__':
+
+def test_script_generation():
     # --- Setup for Testing ---
     # Configure basic logging to see the output from the class
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -30,10 +32,13 @@ if __name__ == '__main__':
     )
 
     # --- Verification ---
-    if script:
-        logger.info("---  Test SUCCESS ---")
-        print("\n--- Generated Script ---")
-        print(script)
-        print("------------------------")
-    else:
-        logger.error("--- Test FAILED: The process returned None. ---")
+    assert script is not None, "The process returned None."
+    assert len(script) > 0, "The generated script is empty."
+    
+    logger.info("---  Test SUCCESS ---")
+    print("\n--- Generated Script ---")
+    print(script)
+    print("------------------------")
+
+if __name__ == '__main__':
+    test_script_generation()

@@ -1,6 +1,7 @@
+import pytest
 from src.processors.subtitle_processor import SubtitleProcessor
 
-if __name__ == "__main__":
+def test_subtitle_processing():
     import logging
 
     logging.basicConfig(
@@ -69,6 +70,8 @@ if __name__ == "__main__":
             time_offset_s=0.0
         )
 
+        assert ass_content is not None, "Process returned None"
+        assert isinstance(ass_content, str), "Process should return a string"
         logger.info("Test SUCCESS — Subtitle content generated.")
         print("\n--- Generated ASS Subtitle Content ---\n")
         print(ass_content)
@@ -76,3 +79,7 @@ if __name__ == "__main__":
 
     except Exception as e:
         logger.error(f"Test FAILED — {e}")
+        pytest.fail(f"Subtitle processing failed with exception: {e}")
+
+if __name__ == "__main__":
+    test_subtitle_processing()

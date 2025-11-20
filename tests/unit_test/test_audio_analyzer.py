@@ -1,9 +1,9 @@
+import logging
+import pytest
 from pydub.generators import Sine
 from src.processors.audio_analyzer import AudioAnalyzer
 
-if __name__ == "__main__":
-    import logging
-
+def test_audio_analyzer_processing():
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s"
@@ -39,9 +39,14 @@ if __name__ == "__main__":
     try:
         result = analyzer.process(audio_bytes, config)
 
+        assert result is not None, "Process returned None"
         logger.info("Test SUCCESS")
         print("\nWord Timestamps:", result["word_timestamps"])
         print("\nPacing Chunks:", result["pacing_chunks"])
 
     except Exception as e:
         logger.error(f"Test FAILED: {e}")
+        pytest.fail(f"Audio analysis failed with exception: {e}")
+
+if __name__ == "__main__":
+    test_audio_analyzer_processing()
