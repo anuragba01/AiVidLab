@@ -88,14 +88,36 @@ BYTEZ_API_KEY=YOUR_BYTEZ_API_KEY
 
 ### Usage
 
-1.  **Edit `input.json`:** Define the topic and instructions for your video.
+1.  **Edit `input.json`:**
+Define the topic and instructions for your video. <br>
+**Edit** `config.json` if needed  and set your configaration.
+
+
 2.  **Run the pipeline:**
     ```bash
     python -m src.main.py
     ```
-3.  **Find your video:** The generated video will be saved in the `output` directory.
+3.  **Find your video:** The generated video will be saved in the `output` directory.<br>
 
+⚠️**Cost Warning: Image Generation**
+By default, the software is configured to use **gemini-2.5-flash-image** (a *Paid API*).  
+If Gemini fails, the system will automatically fall back to **stabilityai/stable-diffusion-xl-base-1.0** (Free/Hugging Face).
+
+To avoid API costs entirely, you can force the system to use the free model immediately by updating your config.
+
+In **config.json**:
+
+```bash
+"image_generator": {
+    "direct_fallback": true
+}
+```
 ---
+## How to get APIs key
+Visit [GEMINI_API_KEY](https://ai.google.dev/gemini-api/docs/api-key) for *`GEMINI_API_KEY`*
+<br>
+Visit [BYTEZ_API_KEY](https://bytez.com) for 
+*`BYTEZ_API_KEY`*
 
 ## Testing
 Please visit the **`.github/workflows`** folder for information related to testing.
