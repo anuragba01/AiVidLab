@@ -1,0 +1,15 @@
+# --- PyTorch (CPU Version for Speed/Size) ---
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
+torchvision
+torchaudio
+
+# --- General Libraries ---
+google-genai
+bytez
+pydub
+Pillow
+python-dotenv
+
+# --- Git Dependencies ---
+git+https://github.com/linto-ai/whisper-timestamped.git

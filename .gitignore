@@ -80,7 +80,6 @@ tmp/
 *.tar
 *.gz
 *.json
-*.txt
 *.csv
 *.npy
 *.pkl
@@ -93,6 +92,7 @@ tmp/
 !input.json
 !requirements.txt
 !README.md
+!requirements.txt
 
 # ----------------------------
 # Jupyter notebooks and checkpoints
