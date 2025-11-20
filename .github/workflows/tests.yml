@@ -29,7 +29,7 @@ jobs:
 
   test:
     name: Test Ubuntu / Py ${{ matrix.python-version }}
-    runs-on: ubuntu-latest 
+    runs-on: [ubuntu-latest, windows-latest, macos-latest]
     
     strategy:
       fail-fast: true 

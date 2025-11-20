@@ -44,7 +44,7 @@ The video generation process is orchestrated as a pipeline, with each step feedi
 
 This project requires the following to be installed on your system:
 
-*   **Python 3.8+**
+*   **Python (tested on v3.12)**
 *   **FFmpeg:** A command-line tool for handling multimedia data. The installation script will attempt to install it for you on Linux and macOS. For Windows, you will need to install it manually.
 
 The project also depends on the following Python packages, which will be installed by the setup script:
