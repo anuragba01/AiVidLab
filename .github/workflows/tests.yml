@@ -32,7 +32,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
-      fail-fast: true 
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.12"]
@@ -48,11 +48,22 @@ jobs:
           cache: "pip"
           cache-dependency-path: requirements.txt
 
-      - name: Install FFmpeg (Ubuntu only)
-        if: ${{ matrix.os == 'ubuntu-latest' }}
+      # Fix: Install FFmpeg on Ubuntu
+      - name: Install FFmpeg (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
+
+      # Fix: Install FFmpeg on macOS (Required for pydub/ffprobe)
+      - name: Install FFmpeg (MacOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install ffmpeg
+
+      # Fix: Install FFmpeg on Windows (Required for pydub/ffprobe)
+      - name: Install FFmpeg (Windows)
+        if: matrix.os == 'windows-latest'
+        run: choco install ffmpeg
 
       - name: Install dependencies
         run: |
