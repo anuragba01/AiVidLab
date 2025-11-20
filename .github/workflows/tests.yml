@@ -53,7 +53,7 @@ jobs:
 
       # 🛠️ Install FFmpeg (Required for pydub/audio)
       - name: Install FFmpeg
-        run:
+        run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
@@ -63,7 +63,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
-
           pip install -r requirements.txt
 
       # 🧪 Run Tests
@@ -74,7 +73,7 @@ jobs:
           BYTEZ_API_KEY: "${{ secrets.BYTEZ_API_KEY }}"
           # 🔧 FIX "ModuleNotFoundError": Add current folder to Python Path
           PYTHONPATH: . 
-        run:
+        run: |
           # Using 'python -m pytest' ensures 'src' is found
           python -m pytest --cov=. --cov-report=xml --cov-report=term-missing --maxfail=1 --disable-warnings
 
