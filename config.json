@@ -7,9 +7,9 @@
   },
   "gemini_models": {
     "tts": "gemini-2.5-flash-preview-tts",
-    "m_llm":"gemini-2.5-pro",
+    "m_llm":"gemini-2.5-pro", 
     "llm": "gemini-2.0-flash-lite",
-    "image_generator": "gemini-2.0-flash-preview-image-generation"
+    "image_generator": "gemini-2.5-flash-image"
     
   },
   "tts_settings": {
@@ -27,7 +27,8 @@
     "prompt_universal_suffix": ", soft lighting, cinematic style, high detail, emotionally immersive",
     "negative_prompt_terms": "low quality, poorly drawn, extra limbs, distorted, neon, watermark, signature, text",
     "target_width": 1024,
-    "target_height": 576
+    "target_height": 576,
+    "direct_fallback": true
   },
   "video_rendering": {
     "target_width": 1920,
@@ -37,7 +38,7 @@
     "video_codec": "libx264",
     "pixel_format": "yuv420p",
     "audio_codec": "aac",
-    "enable_calm_zoom": true,
+    "enable_calm_zoom": false,
     "calm_zoom_max_scale": 1.15,
     "calm_zoom_cycles_per_clip": 0.5
   },

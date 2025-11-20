@@ -2,14 +2,12 @@
 Image Generator Processor Module
 
 This file contains the ImageGenerator class, a dedicated tool for creating
-an image from a text prompt using Gemini vision or image generation model,
-with fallback to a separate Bytez generator utility.
+an image from a text prompt using Gemini vision or image generation model.
 
 Responsibilities:
 - Initialize the Gemini client with an image generation model.
 - Take a text prompt as input.
 - Call the Gemini API to generate an image.
-- If Gemini fails, delegate all subsequent generation to a fallback utility.
 - Handle API responses and extract image data.
 - Return the image data as bytes.
 """
@@ -23,24 +21,21 @@ import logging
 from google import genai
 from google.genai import types
 
-from src.utilities.fallback_image_generator import generate_image_with_bytez
 from src.utilities.image_utils import convert_to_png
 
 logger = logging.getLogger(__name__)
 
 class ImageGenerator:
     """
-    Generates an image from a text prompt using Gemini API, with the ability
-    to fail over to a Bytez-based fallback generator.
+    Generates an image from a text prompt using Gemini API.
     """
-    def __init__(self, api_key: str, model_name: str, bytez_api_key: str = None):
+    def __init__(self, api_key: str, model_name: str):
         """
         Initializes the ImageGenerator with a specific Gemini model.
 
         Args:
             api_key (str): The Google AI Studio API key.
             model_name (str): The specific Gemini model to use for image generation.
-            bytez_api_key (str, optional): The Bytez/Stability AI API key for fallback.
         """
         if not api_key:
             raise ValueError("API key must be provided for ImageGenerator.")
@@ -53,16 +48,11 @@ class ImageGenerator:
         self.client = genai.Client(api_key=api_key)
         self.model_name = model_name
         
-        # Store Bytez key for fallback, but do not initialize here
-        self.bytez_api_key = os.getenv("BYTEZ_API_KEY")
-        self.gemini_has_failed = False
-        
         logger.info("ImageGenerator initialized successfully.")
 
     def process(self, prompt: str, negative_prompt: str = "", api_timeout_s: int = 180) -> bytes:
         """
         Generates an image from a prompt and returns the image data as bytes.
-        Tries Gemini first. If it fails, it uses the Bytez helper for all subsequent calls.
 
         Args:
             prompt (str): The descriptive text prompt for the image.
@@ -81,24 +71,16 @@ class ImageGenerator:
         if negative_prompt and negative_prompt.strip():
             full_prompt = f"{prompt}. Avoid: {negative_prompt.strip()}"
 
-        # Primary generator is Gemini, unless it has failed before.
-        if not self.gemini_has_failed:
-            logger.info(f"Generating image with Gemini for prompt: '{full_prompt[:100]}...'")
-            try:
-                # Pass timeout to Gemini call
-                image_bytes = self._generate_with_gemini(full_prompt, timeout=api_timeout_s)
-                if image_bytes:
-                    return image_bytes
-                # Fallthrough to fallback if no image bytes returned
-            except Exception as e:
-                logger.warning(f"Gemini generation failed: {e}. Switching to fallback generator.")
-            
-            # If we reach here, Gemini has failed one way or another.
-            self.gemini_has_failed = True
-        
-        # Fallback to Bytez generator utility.
-        logger.info("Using fallback image generator (Bytez).")
-        return generate_image_with_bytez(prompt, self.bytez_api_key, timeout=api_timeout_s)
+        logger.info(f"Generating image with Gemini for prompt: '{full_prompt[:100]}...'")
+        try:
+            # Pass timeout to Gemini call
+            image_bytes = self._generate_with_gemini(full_prompt, timeout=api_timeout_s)
+            if image_bytes:
+                return image_bytes
+            return None
+        except Exception as e:
+            logger.warning(f"Gemini generation failed: {e}.")
+            return None
 
     def _generate_with_gemini(self, full_prompt: str, timeout: int) -> bytes:
         """
@@ -118,9 +100,12 @@ class ImageGenerator:
                 model=self.model_name,
                 contents=(full_prompt,),
                 config=types.GenerateContentConfig(
-                    response_modalities=["TEXT", "IMAGE"] 
+                    image_config=types.ImageConfig(
+                        aspect_ratio="16:9",
+                    ),
                 ),
             )
+            
             
             duration = time.time() - start_time
             logger.info(f"Gemini Image Gen API call completed in {duration:.2f} seconds.")

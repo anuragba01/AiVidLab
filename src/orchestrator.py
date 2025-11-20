@@ -22,6 +22,7 @@ from .processors.prompt_processor import PromptProcessor
 from .processors.image_generator import ImageGenerator
 from .processors.subtitle_processor import SubtitleProcessor
 from .processors.video_renderer import VideoRenderer
+from .utilities.fallback_image_generator import generate_image_with_bytez
 
 logger = logging.getLogger(__name__)
 
@@ -85,8 +86,7 @@ class Orchestrator:
             self.prompt_processor = PromptProcessor(self.config['gemini_models']['llm'])
             self.image_generator = ImageGenerator(
                 model_name=self.config['gemini_models']['image_generator'],
-                api_key=os.getenv("GEMINI_API_KEY"),
-                bytez_api_key=os.getenv("BYTEZ_API_KEY")
+                api_key=os.getenv("GEMINI_API_KEY")
             )
             self.subtitle_processor = SubtitleProcessor()
             self.video_renderer = VideoRenderer()
@@ -303,18 +303,46 @@ class Orchestrator:
         logger.info(f"Generating {len(prompts)} visuals...")
         image_sequence = []
         
+        direct_fallback = self.config.get('image_generation', {}).get('direct_fallback', False)
+
         for i, prompt_data in enumerate(prompts):
+            image_bytes = None
+            logger.info(f"Generating image for chunk {i+1}/{len(prompts)}...")
+
+            if not direct_fallback:
+                try:
+                    logger.info(f"Attempting to generate image with Gemini for chunk {i+1}...")
+                    image_bytes = self.image_generator.process(
+                        prompt=prompt_data['prompt'],
+                        negative_prompt=self.config['image_generation']['negative_prompt_terms']
+                    )
+                except Exception as e:
+                    logger.warning(f"Gemini image generation failed for chunk {i+1}: {e}. Trying fallback.")
+
+            if image_bytes:
+                 logger.info(f"Successfully generated image for chunk {i+1} with Gemini.")
+            else:
+                if not direct_fallback:
+                    logger.info(f"Gemini failed or returned no image for chunk {i+1}. Using fallback.")
+                else:
+                    logger.info(f"Direct fallback enabled. Using fallback for chunk {i+1}.")
+                
+                try:
+                    bytez_api_key = os.getenv("BYTEZ_API_KEY")
+                    image_bytes = generate_image_with_bytez(
+                        prompt=prompt_data['prompt'],
+                        bytez_api_key=bytez_api_key
+                    )
+                    if image_bytes:
+                        logger.info(f"Successfully generated image for chunk {i+1} with fallback.")
+                except Exception as e:
+                    logger.error(f"Fallback image generation also failed for chunk {i+1}: {e}")
+
+            if not image_bytes:
+                logger.warning(f"Image generation completely failed for chunk {i+1}, skipping.")
+                continue
+
             try:
-                logger.info(f"Generating image for chunk {i+1}/{len(prompts)}...")
-                image_bytes = self.image_generator.process(
-                    prompt=prompt_data['prompt'],
-                    negative_prompt=self.config['image_generation']['negative_prompt_terms']
-                )
-                
-                if not image_bytes:
-                    logger.warning(f"Image generation failed for chunk {i+1}, skipping.")
-                    continue
-                
                 img_path = os.path.join(self.image_dir, f"image_{i:03d}.png")
                 self._save_file(img_path, image_bytes, mode='wb')
                 
@@ -322,10 +350,9 @@ class Orchestrator:
                     'path': img_path,
                     'duration_s': prompt_data['duration_ms'] / 1000.0
                 })
-                
             except Exception as e:
-                logger.error(f"Failed to generate visual {i+1}: {e}")
-                raise RuntimeError(f"Visual generation failed at chunk {i+1}")
+                logger.error(f"Failed to save image for visual {i+1}: {e}")
+                raise RuntimeError(f"Visual generation failed at chunk {i+1} while saving file.")
         
         if not image_sequence:
             raise RuntimeError("Visual generation failed: No images were created.")
