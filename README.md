@@ -60,7 +60,7 @@ The project also depends on the following Python packages, which will be install
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/AiVidLab.git
+    git clone https://github.com/anuragba01/AiVidLab.git
     cd AiVidLab
     ```
 
