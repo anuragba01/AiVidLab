@@ -20,6 +20,8 @@ The core functionalities include:
 - Burnt-in Subtitles
 - Background Music
 
+  https://github.com/user-attachments/assets/00e99034-9e3e-43e3-8262-e694978674a9
+
 ---
 
 ## How AiVidLab Works
