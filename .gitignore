@@ -148,3 +148,4 @@ docker-compose*.yml
 .test_generated_script.txt
 node_modules/
 .ruff_cache/
+.arough/
