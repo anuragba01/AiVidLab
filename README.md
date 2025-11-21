@@ -94,7 +94,7 @@ BYTEZ_API_KEY=YOUR_BYTEZ_API_KEY
 
 1.  **Edit `input.json`:**
 Define the topic and instructions for your video. <br>
-**Edit** `config.json` if needed  and set your configaration.
+**Edit** `config.json` if needed  and set your configuration.
 
 
 2.  **Run the pipeline:**
