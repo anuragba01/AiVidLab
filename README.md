@@ -10,7 +10,7 @@
 
 ## Overview
 
-AiVidLab is an end-to-end pipeline for generating videos automatically of **`any lenght`**. By providing a topic and some initial instructions, this tool leverages Large Language Models (LLMs) and other AI services to produce a complete video. The pipeline handles everything from scriptwriting to final rendering, making it an ideal solution for automating video content creation.
+AiVidLab is an end-to-end pipeline for generating videos automatically of **`any length`**. By providing a topic and some initial instructions, this tool leverages Large Language Models (LLMs) and other AI services to produce a complete video. The pipeline handles everything from scriptwriting to final rendering, making it an ideal solution for automating video content creation.
 
 The core functionalities include:
 - Script Generation
@@ -106,7 +106,7 @@ Define the topic and instructions for your video. <br>
 ⚠️**Cost Warning: Image Generation**
 By default, the software is configured to use **gemini-2.5-flash-image** (a *Paid API*).  
 If Gemini fails, the system will automatically fall back to **stabilityai/stable-diffusion-xl-base-1.0** (Free/bytez). <br>
-**Note**: image generation with free api can be paifully slow.
+**Note**: image generation with free api can be painfully slow.
 
 To avoid API costs entirely, you can force the system to use the free model immediately by updating your config.
 
